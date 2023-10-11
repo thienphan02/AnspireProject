@@ -1,0 +1,23 @@
+.loginPage {
+    background-image: linear-gradient(to right, rgb(26, 146, 194) , rgb(247, 245, 244));
+}
+
+.loginBox {
+    border-style: outset;
+    border-width: thick;
+    border-color: rgba(174, 205, 223, 0.575);
+}
+
+
+.nav-link:hover {
+    display: inline-block; 
+    background-color: #4a5767; 
+    color: white; 
+    border-radius: 5px; 
+    padding: 1rem;
+    transition: background-color 0.3s, color 0.3s; 
+    width: 12vw;
+    box-sizing: content-box;
+    text-align: center;
+}
+
