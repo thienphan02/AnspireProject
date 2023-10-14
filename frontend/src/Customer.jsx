@@ -68,23 +68,27 @@ function Customer() {
     };
 
     return (
-        <div className='px-5 py-3'>
-             <div className='d-flex justify-content-between align-items-center'>
-                <div className='mb-3'>
+        <div className='px-5 '>
+             <div className='search__container'>
+                <div className='search__title'>
                     <input
-                        type='text'
-                        placeholder='Search'
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                         className='search__input'
+                         type='text'
+                         placeholder='Search'
+                         value={searchQuery}
+                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
                
-                <button className='btn btn-primary' onClick={exportCSV}>
-                    Export CSV
-                </button>
+                <div className="d-flex justify-content-between">
+                    <Link to="/add" className='button-28 mb-3 mt-3'>Add Customer</Link>
+                    <button className='button-29 mb-3 mt-3' onClick={exportCSV}>
+                        Export CSV
+                    </button>
+                </div>
             </div>
-            <Link to="/add" className='btn btn-success mb-3'>Add Customer</Link>
             <div className="table-responsive">
+                
                 <table className="table table-striped table-bordered">
                     <thead className="table-dark">
                         <tr>
@@ -117,13 +121,15 @@ function Customer() {
                                 <td>{customer.state}</td>
                                 <td>{customer.postalCode}</td>
                                 <td>
-                                        <Link to={`/editCustomer/` + customer.ID} className='btn btn-primary btn-sm me-2'>
+                                    
+                                        <Link to={`/editCustomer/` + customer.ID} className='button-44 mb-1'>
                                             Update
                                         </Link>
 
-                                        <button onClick={e => handleDelete(customer.ID)} className='btn btn-sm btn-danger'>
+                                        <button onClick={e => handleDelete(customer.ID)} className='button-45'>
                                             Delete
                                         </button>
+                                        
                                 </td>
                             </tr>
                         })}

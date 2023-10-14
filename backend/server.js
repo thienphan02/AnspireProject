@@ -204,7 +204,7 @@ app.get('/adminCount', (req, res) => {
     })
 })
 app.get('/customerCount', (req, res) => {
-    const sql = "Select count(id) as users from users";
+    const sql = "Select count(id) as users from testing";
     con.query(sql, (err, result) => {
         if(err) return res.json({Error: "Error in runnig query"});
         return res.json(result);

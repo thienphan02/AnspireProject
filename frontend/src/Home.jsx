@@ -1,9 +1,12 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
+import Chart from 'chart.js/auto'
 
 function Home() {
     const [adminCount, setAdminCount] = useState()
     const [customerCount, setCustomerCount] = useState()
+
+  
 
     useEffect(() => {
         axios.get('http://localhost:8081/adminCount')
@@ -15,7 +18,10 @@ function Home() {
             .then(res => {
                 setCustomerCount(res.data[0].users)
             }).catch(err => console.log(err));
+
     }, [])
+
+    
 
     return (
         <div>
@@ -31,7 +37,7 @@ function Home() {
                 </div>
                 <div className='px-3 pt-2 pb-3 border shadow-sm w-25'>
                     <div className='text-center pb-1'>
-                        <h4>Users</h4>
+                        <h4>Customers</h4>
                     </div>
                     <hr />
                     <div className=''>
@@ -39,6 +45,7 @@ function Home() {
                     </div>
                 </div>
             </div>
+
 
             <div className='mt-4 px-5 pt-3'>
                 <h3>List of Admins</h3>
