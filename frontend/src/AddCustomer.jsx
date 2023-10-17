@@ -7,14 +7,14 @@ function AddCustomer() {
         ID: '',
 		name: '',
 		email: '',
-		serviceType: '',
-        devicePaymentPlan: '',
-        creditCardNumber: '',
-        creditCardType: '',
-        accountLastPaymentDate: '',
+		service_type: '',
+        device_payment_plan: '',
+        credit_card: '',
+        credit_card_type: '',
+        account_last_payment_date: '',
 		address: '',
 		state: '',
-		postalCode: ''
+		postal_code: ''
 	})
 	const navigate = useNavigate()
 
@@ -24,14 +24,14 @@ function AddCustomer() {
 			ID: data.ID,
 			name: data.name,
 			email: data.email,
-			serviceType: data.serviceType,
-			devicePaymentPlan: data.devicePaymentPlan,
-			creditCardNumber: data.creditCardNumber,
-			creditCardType: data.creditCardType,
-			accountLastPaymentDate: data.accountLastPaymentDate,
+			service_type: data.service_type,
+			device_payment_plan: data.device_payment_plan,
+			credit_card: data.credit_card,
+			credit_card_type: data.credit_card_type,
+			account_last_payment_date: data.account_last_payment_date,
 			address: data.address,
 			state: data.state,
-			postalCode: data.postalCode
+			postal_code: data.postal_code
 		};
 		axios.post('http://localhost:8081/add', formdata)
 		.then(res => {
@@ -61,28 +61,28 @@ function AddCustomer() {
 				</div>
 				<div className ="col-12">
 					<label htmlFor="inputServiceType" className ="form-label">Service Type</label>
-					<input type="Service Type" className ="form-control" id="inputServiceType" placeholder='Enter Service Type' autoComplete='off'
-					 onChange={e => setData({...data, serviceType: e.target.value})}/>
+					<input type="text" className ="form-control" id="inputServiceType" placeholder='Enter Service Type' autoComplete='off'
+					 onChange={e => setData({...data, service_type: e.target.value})}/>
 				</div>
 				<div className ="col-12">
 					<label htmlFor="inputDevicePaymentPlan" className ="form-label">Device Payment Plan</label>
 					<input type="text" className ="form-control" id="inputDevicePaymentPlan" placeholder="Enter Device Payment Plan" autoComplete='off'
-					onChange={e => setData({...data, devicePaymentPlan: e.target.value})}/>
+					onChange={e => setData({...data, device_payment_plan: e.target.value})}/>
 				</div>
                 <div className ="col-12">
 					<label htmlFor="inputCreditCardNumber" className ="form-label">Credit Card Number</label>
 					<input type="text" className ="form-control" id="inputCreditCardNumber" placeholder="Enter Credit Card Number" autoComplete='off'
-					onChange={e => setData({...data, creditCardNumber: e.target.value})}/>
+					onChange={e => setData({...data, credit_card: e.target.value})}/>
 				</div>
                 <div className ="col-12">
 					<label htmlFor="inputCreditCardType" className ="form-label">Credit Card Type</label>
 					<input type="text" className ="form-control" id="inputCreditCardType" placeholder="Credit Card Type" autoComplete='off'
-					onChange={e => setData({...data, creditCardType: e.target.value})}/>
+					onChange={e => setData({...data, credit_card_type: e.target.value})}/>
 				</div>
                 <div className ="col-12">
 					<label htmlFor="inputAccountLastPaymentDate" className ="form-label">Account Last Payment Date</label>
 					<input type="text" className ="form-control" id="inputAccountLastPaymentDate" placeholder="mm/dd/yyyy" autoComplete='off'
-					onChange={e => setData({...data, accountLastPaymentDate: e.target.value})}/>
+					onChange={e => setData({...data, account_last_payment_date: e.target.value})}/>
 				</div>
 				<div className ="col-12">
 					<label htmlFor="inputAddress" className ="form-label">Address</label>
@@ -97,7 +97,7 @@ function AddCustomer() {
                 <div className ="col-12">
 					<label htmlFor="inputPostalCode" className ="form-label">Postal Code</label>
 					<input type="text" className ="form-control" id="inputPostalCode" placeholder="Enter Postal Code" autoComplete='off'
-					onChange={e => setData({...data, postalCode: e.target.value})}/>
+					onChange={e => setData({...data, postal_code: e.target.value})}/>
 				</div>
 				<div className ="col-12">
 					<button type="submit" className ="btn btn-primary">Add</button>

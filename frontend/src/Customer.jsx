@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import axios from 'axios'
 import './style.css'
 
-function Customer() {
+function Customer({ isDarkMode }) {
     const [data, setData] = useState([])
     const [searchQuery, setSearchQuery] = useState('')
 
@@ -38,14 +38,14 @@ function Customer() {
             customer.ID.toLowerCase().includes(searchString) ||
             customer.name.toLowerCase().includes(searchString) ||
             customer.email.toLowerCase().includes(searchString) ||
-            customer.serviceType.toLowerCase().includes(searchString) ||
-            customer.devicePaymentPlan.toLowerCase().includes(searchString) ||
-            customer.creditCardNumber.toLowerCase().includes(searchString) ||
-            customer.creditCardType.toLowerCase().includes(searchString) ||
-            customer.accountLastPaymentDate.toLowerCase().includes(searchString) ||
+            customer.service_type.toLowerCase().includes(searchString) ||
+            customer.device_payment_plan.toLowerCase().includes(searchString) ||
+            customer.credit_card.toLowerCase().includes(searchString) ||
+            customer.credit_card_type.toLowerCase().includes(searchString) ||
+            customer.account_last_payment_date.toLowerCase().includes(searchString) ||
             customer.address.toLowerCase().includes(searchString) ||
             customer.state.toLowerCase().includes(searchString) ||
-            customer.postalCode.toLowerCase().includes(searchString)
+            customer.postal_code.toLowerCase().includes(searchString)
         );
     });
 
@@ -67,19 +67,28 @@ function Customer() {
         URL.revokeObjectURL(url);
     };
 
+    const formatDate = (isoDate) => {
+        const date = new Date(isoDate);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+
     return (
-        <div className='px-5 '>
-             <div className='search__container'>
+        <div className="px-5">
+            <div className='search__container'>
                 <div className='search__title'>
                     <input
-                         className='search__input'
-                         type='text'
-                         placeholder='Search'
-                         value={searchQuery}
-                         onChange={(e) => setSearchQuery(e.target.value)}
+                        className='search__input'
+                        type='text'
+                        placeholder='Search'
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-               
+
                 <div className="d-flex justify-content-between">
                     <Link to="/add" className='button-28 mb-3 mt-3'>Add Customer</Link>
                     <button className='button-29 mb-3 mt-3' onClick={exportCSV}>
@@ -88,8 +97,9 @@ function Customer() {
                 </div>
             </div>
             <div className="table-responsive">
-                
-                <table className="table table-striped table-bordered">
+            
+            <table className={`table table-striped table-bordered table-hover ${isDarkMode ? 'table-dark' : 'table-light'}`}>
+                  
                     <thead className="table-dark">
                         <tr>
                             <th>ID</th>
@@ -103,7 +113,7 @@ function Customer() {
                             <th>Address</th>
                             <th>State</th>
                             <th>Postal Code</th>
-                            <th>Actions</th>
+                            <th className="Actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -112,29 +122,31 @@ function Customer() {
                                 <td>{customer.ID}</td>
                                 <td>{customer.name}</td>
                                 <td>{customer.email}</td>
-                                <td>{customer.serviceType}</td>
-                                <td>{customer.devicePaymentPlan}</td>
-                                <td>{customer.creditCardNumber}</td>
-                                <td>{customer.creditCardType}</td>
-                                <td>{customer.accountLastPaymentDate}</td>
+                                <td>{customer.service_type}</td>
+                                <td>{customer.device_payment_plan}</td>
+                                <td>{customer.credit_card}</td>
+                                <td>{customer.credit_card_type}</td>
+                                <td>{formatDate(customer.account_last_payment_date)}</td>
                                 <td>{customer.address}</td>
                                 <td>{customer.state}</td>
-                                <td>{customer.postalCode}</td>
-                                <td>
-                                    
-                                        <Link to={`/editCustomer/` + customer.ID} className='button-44 mb-1'>
-                                            Update
-                                        </Link>
+                                <td>{customer.postal_code}</td>
+                                <td >
 
-                                        <button onClick={e => handleDelete(customer.ID)} className='button-45'>
-                                            Delete
-                                        </button>
-                                        
+                                    <Link to={`/editCustomer/` + customer.ID} className='button-44 mb-1'>
+                                        Update
+                                    </Link>
+
+                                    <button onClick={e => handleDelete(customer.ID)} className='button-45'>
+                                        Delete
+                                    </button>
+
                                 </td>
                             </tr>
                         })}
                     </tbody>
+                    
                 </table>
+                
             </div>
         </div>
     )

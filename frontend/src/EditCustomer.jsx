@@ -10,14 +10,14 @@ function EditCustomer() {
         ID: '',
 		name: '',
 		email: '',
-		serviceType: '',
-        devicePaymentPlan: '',
-        creditCardNumber: '',
-        creditCardType: '',
-        accountLastPaymentDate: '',
+		service_type: '',
+        device_payment_plan: '',
+        credit_card: '',
+        credit_card_type: '',
+        account_last_payment_date: '',
 		address: '',
 		state: '',
-		postalCode: '',
+		postal_code: ''
 	})   
 
 	useEffect(() => {
@@ -30,14 +30,14 @@ function EditCustomer() {
 				ID,
 				name,
 				email,
-				serviceType,
-				devicePaymentPlan,
-				creditCardNumber,
-				creditCardType,
-				accountLastPaymentDate,
+				service_type,
+				device_payment_plan,
+				credit_card,
+				credit_card_type,
+				account_last_payment_date,
 				address,
 				state,
-				postalCode
+				postal_code
 			  } = customerData;
 			  
 			  setData({
@@ -45,14 +45,14 @@ function EditCustomer() {
 				ID,
 				name,
 				email,
-				serviceType,
-				devicePaymentPlan,
-				creditCardNumber,
-				creditCardType,
-				accountLastPaymentDate,
+				service_type,
+				device_payment_plan,
+				credit_card,
+				credit_card_type,
+				account_last_payment_date,
 				address,
 				state,
-				postalCode
+				postal_code
 			  });
 			} else {
 			  console.log(data)
@@ -95,28 +95,28 @@ function EditCustomer() {
 				</div>
 				<div className ="col-12">
 					<label htmlFor="inputServiceType" className ="form-label">Service Type</label>
-					<input type="Service Type" className ="form-control" id="inputServiceType" placeholder='Enter Service Type' autoComplete='off'
-					 onChange={e => setData({...data, serviceType: e.target.value})} value={data.serviceType}/>
+					<input type="text" className ="form-control" id="inputServiceType" placeholder='Enter Service Type' autoComplete='off'
+					 onChange={e => setData({...data, service_type: e.target.value})} value={data.service_type}/>
 				</div>
 				<div className ="col-12">
 					<label htmlFor="inputDevicePaymentPlan" className ="form-label">Device Payment Plan</label>
 					<input type="text" className ="form-control" id="inputDevicePaymentPlan" placeholder="Enter Device Payment Plan" autoComplete='off'
-					onChange={e => setData({...data, devicePaymentPlan: e.target.value})} value={data.devicePaymentPlan}/>
+					onChange={e => setData({...data, device_payment_plan: e.target.value})} value={data.device_payment_plan}/>
 				</div>
                 <div className ="col-12">
 					<label htmlFor="inputCreditCardNumber" className ="form-label">Credit Card Number</label>
 					<input type="text" className ="form-control" id="inputCreditCardNumber" placeholder="Enter Credit Card Number" autoComplete='off'
-					onChange={e => setData({...data, creditCardNumber: e.target.value})} value={data.creditCardNumber}/>
+					onChange={e => setData({...data, credit_card: e.target.value})} value={data.credit_card}/>
 				</div>
                 <div className ="col-12">
 					<label htmlFor="inputCreditCardType" className ="form-label">Credit Card Type</label>
 					<input type="text" className ="form-control" id="inputCreditCardType" placeholder="Credit Card Type" autoComplete='off'
-					onChange={e => setData({...data, creditCardType: e.target.value})} value={data.creditCardType}/>
+					onChange={e => setData({...data, credit_card_type: e.target.value})} value={data.credit_card_type}/>
 				</div>
                 <div className ="col-12">
 					<label htmlFor="inputAccountLastPaymentDate" className ="form-label">Account Last Payment Date</label>
 					<input type="text" className ="form-control" id="inputAccountLastPaymentDate" placeholder="mm/dd/yyyy" autoComplete='off'
-					onChange={e => setData({...data, accountLastPaymentDate: e.target.value})} value={data.accountLastPaymentDate}/>
+					onChange={e => setData({...data, account_last_payment_date: e.target.value})} value={data.account_last_payment_date}/>
 				</div>
 				<div className ="col-12">
 					<label htmlFor="inputAddress" className ="form-label">Address</label>
@@ -131,7 +131,7 @@ function EditCustomer() {
                 <div className ="col-12">
 					<label htmlFor="inputPostalCode" className ="form-label">Postal Code</label>
 					<input type="text" className ="form-control" id="inputPostalCode" placeholder="Enter Postal Code" autoComplete='off'
-					onChange={e => setData({...data, postalCode: e.target.value})} value={data.postalCode}/>
+					onChange={e => setData({...data, postal_code: e.target.value})} value={data.postal_code}/>
 				</div>
 				<div className ="col-12">
 					<button type="submit" className ="btn btn-primary">Update</button>

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { useState, useEffect } from 'react';
 import Login from './Login'
 import {BrowserRouter, Routes, Route} from 'react-router-dom'
 import Dashboard from './Dashboard'
@@ -12,13 +12,19 @@ import CustomerLogin from './CustomerLogin'
 import UserDashboard from './UserDashboard'
 
 function App() {
+
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
   return (
    <BrowserRouter>
    <Routes>
-        <Route path="/" element={<Dashboard />}>
-          <Route path='' element={<Home />}/>
-          <Route path='/home' element={<Home />} />
-          <Route path="/customer" element={<Customer />} />
+        <Route path="/" element={<Dashboard isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}>
+          <Route path='' element={<Home isDarkMode={isDarkMode}/>}/>
+          <Route path='/home' element={<Home isDarkMode={isDarkMode}/>} />
+          <Route path="/customer" element={<Customer isDarkMode={isDarkMode}/>} />
           <Route path="/add" element={<AddCustomer />} />
           <Route path="/editCustomer/:id" element={<EditCustomer />} />
         </Route>

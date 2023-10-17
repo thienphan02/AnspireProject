@@ -1,12 +1,57 @@
 .loginPage {
-    background-image: linear-gradient(to right, rgb(26, 146, 194) , rgb(247, 245, 244));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #4a90e2, #ff6c47); /* Gradient background */
+  background-size: 200% 200%;
+  animation: gradientFlow 10s linear infinite;
 }
 
 .loginBox {
-    border-style: outset;
-    border-width: thick;
-    border-color: rgba(174, 205, 223, 0.575);
+  background-color: #ffffff; /* White background */
+  border: 1px solid #ccc; /* Gray border */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow effect */
+  padding: 20px;
+  text-align: center;
 }
+
+.login-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333; /* Dark text color */
+}
+
+/* Style the form inputs */
+.loginBox input[type="email"],
+.loginBox input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f8f8f8; /* Light gray background */
+}
+
+/* Style the submit button */
+.loginBox button {
+  width: 100%;
+  padding: 12px 20px;
+  background-color: #4a90e2; /* Blue background color */
+  color: #fff; /* White text color */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.loginBox button:hover {
+  background-color: #357ebd; /* Darker blue on hover */
+  transform: translateY(-3px);
+}
+
 
 
 .nav-link:hover {
@@ -16,7 +61,7 @@
     border-radius: 5px; 
     padding: 1rem;
     transition: background-color 0.3s, color 0.3s; 
-    width: 12vw;
+    width: 10vw;
     box-sizing: content-box;
     text-align: center;
 }
@@ -177,7 +222,7 @@
     line-height: 33.4929px;
     list-style: outside url(https://www.smashingmagazine.com/images/bullet.svg) none;
     padding: 2px 12px;
-    text-align: left;
+    text-align: center;
     text-decoration: none;
     text-shadow: none;
     text-underline-offset: 1px;
@@ -215,6 +260,11 @@
     color: #FFFFFF;
   }
 
+  th.Actions,
+  td.Actions {
+    width: 70px; 
+  }
+  
   /* CSS */
 .button-44 {
     align-items: center;
@@ -231,7 +281,7 @@
     line-height: 33.4929px;
     list-style: outside url(https://www.smashingmagazine.com/images/bullet.svg) none;
     padding: 2px 12px;
-    text-align: left;
+    text-align: center;
     text-decoration: none;
     text-shadow: none;
     text-underline-offset: 1px;
@@ -240,7 +290,7 @@
     -webkit-user-select: none;
     touch-action: manipulation;
     white-space: nowrap;
-    word-break: break-word;
+    word-break: break-word; 
   }
   
   .button-44:active,
@@ -268,3 +318,101 @@
     box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
     color: #FFFFFF;
   }
+
+
+
+  /* dark-mode.css */
+.dark-mode {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Add styles for specific components when dark mode is enabled */
+.dark-mode .some-component {
+  background-color: #333;
+  color: #fff;
+}
+
+
+/* Start.css */
+.start-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #4a90e2, #ff6c47); /* Gradient background */
+  background-size: 200% 200%;
+  animation: gradientFlow 10s linear infinite;
+}
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.start-content {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column; /* Stack items vertically */
+  align-items: center; /* Center horizontally */
+}
+
+.start-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.start-button {
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background 0.3s, transform 0.3s;
+  width: 120px; /* Ensure button width is consistent */
+  margin: 5px; /* Add some space between the buttons */
+}
+
+.start-button:hover {
+  transform: translateY(-3px);
+}
+
+.user-button {
+  background: #4a90e2; /* Blue background color */
+  animation: buttonPulse 2s ease infinite;
+}
+
+.admin-button {
+  background: #ff6c47; /* Orange background color */
+  animation: buttonPulse 2s ease infinite reverse;
+}
+
+/* @keyframes buttonPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+} */
