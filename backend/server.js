@@ -1,9 +1,9 @@
 import express from 'express'
-import mysql from 'mysql'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+//import dbConnection from './config/dbConfig.js' // Via this import, it sets up the connection, not using this currently, might not need to.
 
 const app = express();
 app.use(cors({
@@ -15,21 +15,50 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
-const con = mysql.createConnection({
-    host: "localhost",
-    port: "3307",
-    user: "root",
-    password: "",
-    database: "signup"
-})
+// The second one
 
-con.connect(function (err) {
-    if (err) {
-        console.log("Error in Connection:", err)
-    } else {
-        console.log("Connected")
+import sql from 'mssql'
+let con; // I need to handle the async db connection inside this function, 
+// So I create this variable in a larger scope so I can query outside the connection method
+async function connectToDatabase() {
+    try {
+      con = await sql.connect({
+        server: 'anspire.database.windows.net',
+        database: 'anspireDB',
+        user: 'group4',
+        password: 'olemi$$2023',
+        options: {
+          encrypt: true,
+          enableArithAbort: true
+        }
+      });
+      console.log('Connected to the database');
+    } catch (error) {
+      console.error('Error connecting to the database:', error);
     }
-})
+  }
+await connectToDatabase(); // Make the connection
+
+// This is our old connection.
+
+// const con = sql.connect({
+//     server: 'anspire.database.windows.net',
+//     database: 'anspireDB',
+//     user: 'group4',
+//     password: 'olemi$$2023',
+//     options: {
+//       encrypt: true, // The internet says to do this
+//       enableArithAbort: true // The internet says this is required
+//     }
+//   });
+
+// con.connect(function (err) {
+//     if (err) {
+//         console.log("Error in Connection:", err)
+//     } else {
+//         console.log("Connected")
+//     }
+// }) 
 
 app.post('/login', (req, res) => {
     const sql = "SELECT * FROM admin WHERE email = ?";
