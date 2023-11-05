@@ -15,11 +15,8 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
-// The second one
-
 import sql from 'mssql'
-let con; // I need to handle the async db connection inside this function, 
-// So I create this variable in a larger scope so I can query outside the connection method
+let con;
 async function connectToDatabase() {
     try {
       con = await sql.connect({
@@ -37,28 +34,9 @@ async function connectToDatabase() {
       console.error('Error connecting to the database:', error);
     }
   }
-await connectToDatabase(); // Make the connection
+await connectToDatabase(); // Make a global connection with con as the connection variable
 
-// This is our old connection.
 
-// const con = sql.connect({
-//     server: 'anspire.database.windows.net',
-//     database: 'anspireDB',
-//     user: 'group4',
-//     password: 'olemi$$2023',
-//     options: {
-//       encrypt: true, // The internet says to do this
-//       enableArithAbort: true // The internet says this is required
-//     }
-//   });
-
-// con.connect(function (err) {
-//     if (err) {
-//         console.log("Error in Connection:", err)
-//     } else {
-//         console.log("Connected")
-//     }
-// }) 
 
 app.post('/login', (req, res) => {
     const sql = "SELECT * FROM admin WHERE email = ?";
@@ -83,100 +61,41 @@ app.post('/login', (req, res) => {
     });
 });
 
-app.post('/customerLogin', (req, res) => {
-    const sql = "SELECT * FROM users WHERE email = ?";
+app.post('/customerLogin', async (req, res) => {
+    try {
+      const query = `SELECT id, email, password FROM users WHERE email = @email`;
+      const request = con.request().input('email', sql.VarChar, req.body.email);
+      const result = await request.query(query);
 
-    con.query(sql, [req.body.email], (err, result) => {
-        if (err) return res.json({ Status: "Error", Error: "Error in running query" });
-
-        if (result.length > 0) {
-            const users = result[0];
-
-            if (bcrypt.compare(req.body.password, users.password)) {
-                const id = users.id;
-                const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
-                res.cookie('token', token);
-                return res.json({ Status: "Success" });
-            } else {
-                return res.json({ Status: "Error", Error: "Wrong Email or Password" });
-            }
+      if (result.recordset.length > 0) {
+        const user = result.recordset[0];
+  
+        if (await bcrypt.compare(req.body.password, user.password)) {
+          const id = user.id;
+          const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
+          res.cookie('token', token);
+          return res.json({ Status: "Success" });
         } else {
-            return res.json({ Status: "Error", Error: "User not found" });
+          return res.json({ Status: "Error", Error: "Wrong Email or Password" });
         }
-    });
-});
-// app.post('/customerLogin', (req, res) => {
-//     const sql = "SELECT * FROM users Where email = ? AND  password = ?";
+      } else {
+        return res.json({ Status: "Error", Error: "User not found" });
+      }
+    } catch (err) {
+      console.error("Error in running query:", err);
+      return res.json({ Status: "Error", Error: "Error in running query" });
+    }
+  });
 
-//     con.query(sql, [req.body.email, req.body.password], (err, result) => {
-//         if (err) return res.json({ Status: "Error", Error: "Error in runnig query" });
-//         if (result.length > 0) {
-//             const id = result[0].id;
-//             const token = jwt.sign({ role: "admin" }, "jwt-secret-key", { expiresIn: '1d' });
-//             res.cookie('token', token);
-//             return res.json({ Status: "Success" })
-//         } else {
-//             return res.json({ Status: "Error", Error: "Wrong Email or Password" });
-//         }
-//     })
-// })
-
-con.query("SELECT id, password FROM admin", (err, results) => {
-    if (err) {
-        console.error("Error fetching admin passwords from the database:", err);
-    } else {
-        results.forEach((admin) => {
-            const id = admin.id;
-            const password = admin.password;
-
-            // Hash the password
-            const hashedPassword = bcrypt.hashSync(password, 10);
-
-            // Update the hashed password in the database
-            const updateSql = "UPDATE admin SET password = ? WHERE id = ?";
-            con.query(updateSql, [hashedPassword, id], (updateError, updateResult) => {
-                if (updateError) {
-                    console.error("Error updating password in the database:", updateError);
-                } else {
-                    console.log("Password updated in the database.");
-                }
-            });
-        });
+  app.get('/getCustomer', async (req, res) => {
+    try {
+        const result = await con.request().query('SELECT * FROM combined_data');
+        return res.json({ Status: 'Success', Result: result.recordset });
+    } catch (err) {
+        console.error('Error fetching customer data from the database:', err);
+        return res.json({ Error: 'Get customer error in SQL' });
     }
 });
-
-con.query("SELECT id, password FROM users", (err, results) => {
-    if (err) {
-        console.error("Error fetching user passwords from the database:", err);
-    } else {
-        results.forEach((user) => {
-            const id = user.id;
-            const password = user.password;
-
-            // Hash the password
-            const hashedPassword = bcrypt.hashSync(password, 10);
-
-            // Update the hashed password in the database
-            const updateSql = "UPDATE users SET password = ? WHERE id = ?";
-            con.query(updateSql, [hashedPassword, id], (updateError, updateResult) => {
-                if (updateError) {
-                    console.error("Error updating password in the users database:", updateError);
-                } else {
-                    console.log("Password updated in the users database.");
-                }
-            });
-        });
-    }
-});
-
-
-app.get('/getCustomer', (req, res) => {
-    const sql = "SELECT * FROM combined_data"
-    con.query(sql, (err, result) => {
-        if (err) return res.json({ Error: "Get customer error in sql" })
-        return res.json({ Status: "Success", Result: result })
-    })
-})
 
 app.get('/get/:id', (req, res) => {
     const id = req.params.id;

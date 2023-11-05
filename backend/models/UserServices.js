@@ -1,13 +1,13 @@
 import { Sequelize, DataTypes } from 'sequelize';
 import { sequelize } from '../config/connection.js';
 
-import User from './User.js';
+import combined_data from './combined_data.js';
 import Service from './Service.js';
 
 const UserServices = sequelize.define('UserServices', {
   // Composite primary key
   UserID: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING(50),
     primaryKey: true,
 	allowNull: false
   },
@@ -21,7 +21,7 @@ const UserServices = sequelize.define('UserServices', {
 	tableName: 'UserServices',
 });
 //create foreign key constraints
-UserServices.belongsTo(User, {
+UserServices.belongsTo(combined_data, {
   foreignKey: 'UserID',
   targetKey: 'id',
 });
