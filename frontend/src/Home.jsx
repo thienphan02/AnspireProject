@@ -26,7 +26,7 @@ function Home({isDarkMode}) {
         axios.get('http://localhost:8081/editHistory')
             .then(res => {
                 console.log(res.data); // Log the response to check its structure
-                setEditHistory(res.data.recordset.EditHistory);
+                setEditHistory(res.data.EditHistory);
             })
             .catch(err => console.log(err));
     }, [])

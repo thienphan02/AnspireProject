@@ -19,7 +19,7 @@ function CustomerLogin() {
         .then(res => {
             if(res.data.Status === 'Success') {
                 const id = res.data.id;
-                navigate('/customerDetail/'+id);
+                navigate('/home'); // formerly was navigate('/customerDetail/'+id);
             } else {
                 setError(res.data.Error);
             }
