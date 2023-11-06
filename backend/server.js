@@ -15,11 +15,8 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
-// The second one
-
 import sql from 'mssql'
-let con; // I need to handle the async db connection inside this function, 
-// So I create this variable in a larger scope so I can query outside the connection method
+let con;
 async function connectToDatabase() {
     try {
       con = await sql.connect({
@@ -37,263 +34,182 @@ async function connectToDatabase() {
       console.error('Error connecting to the database:', error);
     }
   }
-await connectToDatabase(); // Make the connection
+await connectToDatabase(); // Make a global connection with con as the connection variable
 
-// This is our old connection.
+app.post('/login', async (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
 
-// const con = sql.connect({
-//     server: 'anspire.database.windows.net',
-//     database: 'anspireDB',
-//     user: 'group4',
-//     password: 'olemi$$2023',
-//     options: {
-//       encrypt: true, // The internet says to do this
-//       enableArithAbort: true // The internet says this is required
-//     }
-//   });
+    try {
+        const result = await con.query`SELECT * FROM admin WHERE email = ${email}`;
+        const admin = result.recordset[0];
 
-// con.connect(function (err) {
-//     if (err) {
-//         console.log("Error in Connection:", err)
-//     } else {
-//         console.log("Connected")
-//     }
-// }) 
-
-app.post('/login', (req, res) => {
-    const sql = "SELECT * FROM admin WHERE email = ?";
-
-    con.query(sql, [req.body.email], (err, result) => {
-        if (err) return res.json({ Status: "Error", Error: "Error in running query" });
-
-        if (result.length > 0) {
-            const admin = result[0];
-
-            if (bcrypt.compare(req.body.password, admin.password)) {
+        if (admin) {
+            const passwordMatch = await bcrypt.compare(password, admin.password);
+            if (passwordMatch) {
                 const id = admin.id;
-                const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
+                const token = jwt.sign({ role: 'admin', id }, 'jwt-secret-key', { expiresIn: '1d' });
                 res.cookie('token', token);
-                return res.json({ Status: "Success" });
+                return res.json({ Status: 'Success' });
             } else {
-                return res.json({ Status: "Error", Error: "Wrong Email or Password" });
+                return res.json({ Status: 'Error', Error: 'Wrong Email or Password' });
             }
         } else {
-            return res.json({ Status: "Error", Error: "Admin not found" });
+            return res.json({ Status: 'Error', Error: 'Admin not found' });
         }
-    });
-});
-
-app.post('/customerLogin', (req, res) => {
-    const sql = "SELECT * FROM users WHERE email = ?";
-
-    con.query(sql, [req.body.email], (err, result) => {
-        if (err) return res.json({ Status: "Error", Error: "Error in running query" });
-
-        if (result.length > 0) {
-            const users = result[0];
-
-            if (bcrypt.compare(req.body.password, users.password)) {
-                const id = users.id;
-                const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
-                res.cookie('token', token);
-                return res.json({ Status: "Success" });
-            } else {
-                return res.json({ Status: "Error", Error: "Wrong Email or Password" });
-            }
-        } else {
-            return res.json({ Status: "Error", Error: "User not found" });
-        }
-    });
-});
-// app.post('/customerLogin', (req, res) => {
-//     const sql = "SELECT * FROM users Where email = ? AND  password = ?";
-
-//     con.query(sql, [req.body.email, req.body.password], (err, result) => {
-//         if (err) return res.json({ Status: "Error", Error: "Error in runnig query" });
-//         if (result.length > 0) {
-//             const id = result[0].id;
-//             const token = jwt.sign({ role: "admin" }, "jwt-secret-key", { expiresIn: '1d' });
-//             res.cookie('token', token);
-//             return res.json({ Status: "Success" })
-//         } else {
-//             return res.json({ Status: "Error", Error: "Wrong Email or Password" });
-//         }
-//     })
-// })
-
-con.query("SELECT id, password FROM admin", (err, results) => {
-    if (err) {
-        console.error("Error fetching admin passwords from the database:", err);
-    } else {
-        results.forEach((admin) => {
-            const id = admin.id;
-            const password = admin.password;
-
-            // Hash the password
-            const hashedPassword = bcrypt.hashSync(password, 10);
-
-            // Update the hashed password in the database
-            const updateSql = "UPDATE admin SET password = ? WHERE id = ?";
-            con.query(updateSql, [hashedPassword, id], (updateError, updateResult) => {
-                if (updateError) {
-                    console.error("Error updating password in the database:", updateError);
-                } else {
-                    console.log("Password updated in the database.");
-                }
-            });
-        });
+    } catch (err) {
+        console.error('Error in running query:', err);
+        return res.json({ Status: 'Error', Error: 'Error in running query' });
     }
 });
 
-con.query("SELECT id, password FROM users", (err, results) => {
-    if (err) {
-        console.error("Error fetching user passwords from the database:", err);
-    } else {
-        results.forEach((user) => {
-            const id = user.id;
-            const password = user.password;
+app.post('/customerLogin', async (req, res) => {
+    try {
+      const query = `SELECT id, email, password FROM users WHERE email = @email`;
+      const request = con.request().input('email', sql.VarChar, req.body.email);
+      const result = await request.query(query);
 
-            // Hash the password
-            const hashedPassword = bcrypt.hashSync(password, 10);
+      if (result.recordset.length > 0) {
+        const user = result.recordset[0];
+  
+        if (await bcrypt.compare(req.body.password, user.password)) {
+          const id = user.id;
+          const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
+          res.cookie('token', token);
+          return res.json({ Status: "Success" });
+        } else {
+          return res.json({ Status: "Error", Error: "Wrong Email or Password" });
+        }
+      } else {
+        return res.json({ Status: "Error", Error: "User not found" });
+      }
+    } catch (err) {
+      console.error("Error in running query:", err);
+      return res.json({ Status: "Error", Error: "Error in running query" });
+    }
+  });
 
-            // Update the hashed password in the database
-            const updateSql = "UPDATE users SET password = ? WHERE id = ?";
-            con.query(updateSql, [hashedPassword, id], (updateError, updateResult) => {
-                if (updateError) {
-                    console.error("Error updating password in the users database:", updateError);
-                } else {
-                    console.log("Password updated in the users database.");
-                }
-            });
-        });
+  app.get('/getCustomer', async (req, res) => {
+    try {
+        const result = await con.request().query('SELECT * FROM combined_data');
+        return res.json({ Status: 'Success', Result: result.recordset });
+    } catch (err) {
+        console.error('Error fetching customer data from the database:', err);
+        return res.json({ Error: 'Get customer error in SQL' });
     }
 });
 
-
-app.get('/getCustomer', (req, res) => {
-    const sql = "SELECT * FROM combined_data"
-    con.query(sql, (err, result) => {
-        if (err) return res.json({ Error: "Get customer error in sql" })
-        return res.json({ Status: "Success", Result: result })
-    })
-})
-
-app.get('/get/:id', (req, res) => {
+app.get('/get/:id', async (req, res) => {
     const id = req.params.id;
 
+    try {
+        const result = await con.query`SELECT * FROM combined_data WHERE id = ${id}`;
 
-    const sql = "SELECT * FROM combined_data WHERE id = ?";
-    con.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error("Database error:", err);
-            return res.json({ Error: "Get customer error in sql" });
+        if (result.recordset.length === 0) {
+            return res.json({ Status: 'Data not found', Result: [] });
         }
 
-        if (result.length === 0) {
-            return res.json({ Status: "Data not found", Result: [] });
-        }
-
-        return res.json({ Status: "Success", Result: result });
-    });
+        return res.json({ Status: 'Success', Result: result.recordset });
+    } catch (err) {
+        console.error('Database error:', err);
+        return res.json({ Status: 'Error', Error: 'Get customer error in sql' });
+    }
 });
 
-app.put('/update/:id', (req, res) => {
+app.put('/update/:id', async (req, res) => {
     const id = req.params.id;
     const updatedData = req.body;
 
-    // Fetch the current data from the database before the update
-    const sqlGetOldData = "SELECT * FROM combined_data WHERE ID = ?";
-    con.query(sqlGetOldData, [id], (err, result) => {
-        if (err) {
-            console.error("Error fetching old data:", err);
-            return res.json({ Status: "Error", Error: "Error fetching old data" });
-        }
+    try {
+        // Fetch the current data from the database before the update
+        const result = await con.request()
+            .input('id', sql.NVarChar(50), id)
+            .query('SELECT * FROM combined_data WHERE ID = @id');
 
-        const oldData = result[0];
+        const oldData = result.recordset[0];
 
         // Update the data in the database
-        const sqlUpdateData = `
-            UPDATE combined_data
-            SET
-            ID = ?,
-            name = ?,
-            email = ?,
-            service_type = ?,
-            device_payment_plan = ?,
-            credit_card = ?,
-            credit_card_type = ?,
-            account_last_payment_date = ?,
-            address = ?,
-            state = ?,
-            postal_code = ?
-            WHERE ID = ?`;
+        await con.request()
+            .input('id', sql.NVarChar(50), id)
+            .input('name', sql.NVarChar(30), updatedData.Name)
+            .input('email', sql.NVarChar(30), updatedData.Email)
+            .input('device_payment_plan', sql.NVarChar(30), updatedData.DevicePaymentPlan)
+            .input('credit_card', sql.NVarChar(30), updatedData.CreditCardNumber)
+            .input('credit_card_type', sql.NVarChar(30), updatedData.CreditCardType)
+            .input('account_last_payment_date', sql.DateTimeOffset, updatedData.AccountLastPayment)
+            .input('address', sql.NVarChar(30), updatedData.Address)
+            .input('state', sql.NVarChar(30), updatedData.State)
+            .input('postal_code', sql.NVarChar(30), updatedData.PostalCode)
+            .query(`
+                UPDATE combined_data
+                SET
+                Name = @name,
+                Email = @email,
+                DevicePaymentPlan = @device_payment_plan,
+                CreditCardNumber = @credit_card,
+                CreditCardType = @credit_card_type,
+                AccountLastPayment = @account_last_payment_date,
+                Address = @address,
+                State = @state,
+                PostalCode = @postal_code
+                WHERE id = @id
+            `);
 
-        con.query(sqlUpdateData, [
-            updatedData.ID,
-            updatedData.name,
-            updatedData.email,
-            updatedData.service_type,
-            updatedData.device_payment_plan,
-            updatedData.credit_card,
-            updatedData.credit_card_type,
-            updatedData.account_last_payment_date,
-            updatedData.address,
-            updatedData.state,
-            updatedData.postal_code,
-            id
-        ], (err, result) => {
-            if (err) {
-                console.error("Update customer error in SQL:", err);
-                return res.json({ Status: "Error", Error: "Update customer error in SQL" });
-            }
+        // Fetch the current timestamp from the database
+        const timestampResult = await con.request().query('SELECT CURRENT_TIMESTAMP AS timestamp');
+        const timestamp = timestampResult.recordset[0].timestamp;
 
-            // Fetch the current timestamp from the database
-            const sqlGetCurrentTimestamp = "SELECT CURRENT_TIMESTAMP() AS timestamp";
-            con.query(sqlGetCurrentTimestamp, (err, timestampResult) => {
-                if (err) {
-                    console.error("Error fetching current timestamp:", err);
-                    return res.json({ Status: "Error", Error: "Error fetching timestamp" });
-                }
+        // Log the edit history entries for the updated fields
+        const editHistory = getEditHistory(oldData, updatedData, timestamp);
 
-                const timestamp = timestampResult[0].timestamp;
-
-                // Log the edit history entries for the updated fields
-                const editHistory = getEditHistory(oldData, updatedData, timestamp);
-
-                if (editHistory.length > 0) {
-                    const sqlLogEditHistory = `
+        if (editHistory.length > 0) {
+            editHistory.forEach(async entry => {
+                await con.request()
+                    .input('edited_field1', sql.VarChar(255), entry.old_value)
+                    .input('edited_table1', sql.VarChar(255), entry.edited_field)
+                    .input('new_value', sql.VarChar(255), entry.new_value)
+                    .input('timestamp', sql.DateTime, entry.timestamp)
+                    .query(`
                         INSERT INTO edit_history (edited_table, edited_field, new_value, timestamp)
-                        VALUES (?, ?, ?, ?)`;
-
-                    editHistory.forEach(entry => {
-                        con.query(sqlLogEditHistory, [
-                            entry.edited_field, // edited_field
-                            entry.old_value, // edited_table
-                            entry.new_value, // new_value
-                            entry.timestamp // timestamp
-                        ], (err, logResult) => {
-                            if (err) {
-                                console.error("Error logging edit history:", err);
-                            }
-                        });
-                    });
-                }
-
-                return res.json({ Status: "Success" });
+                        VALUES (@edited_table1, @edited_field1, @new_value, @timestamp)
+                    `);
             });
-        });
-    });
+        }
+
+        return res.json({ Status: "Success" });
+    } catch (err) {
+        console.error("Error updating customer:", err);
+        return res.json({ Status: "Error", Error: "Error updating customer" });
+    }
 });
+
+// Function to handle inserting a date into a string for edit_history (turns date to string)
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${month}/${day}/${year}`;
+}
 
 // Function to determine the edited fields and their new values by comparing old and updated data
 function getEditHistory(oldData, updatedData, timestamp) {
     const editHistory = [];
 
     for (const key in updatedData) {
-        if (oldData[key] !== updatedData[key]) {
+        if (key !== 'id' && oldData[key] !== updatedData[key]) {
+            let formattedNewValue = oldData[key];
+
+            // Check if the current key is the one representing the date field
+            if (key === 'AccountLastPayment') {
+                // Parse the new date value into a Date object  
+                const newDate = new Date(formattedNewValue);
+                // Format the date as 'YYYY-MM-DD'
+                formattedNewValue = formatDate(newDate);
+            }
+
             editHistory.push({
                 edited_field: key,       // Set edited_field to the field name
-                old_value: oldData[key],
+                old_value: formattedNewValue,
                 new_value: updatedData[key], // Set new_value to the new value
                 timestamp: timestamp
             });
@@ -303,29 +219,27 @@ function getEditHistory(oldData, updatedData, timestamp) {
     return editHistory;
 }
 
-app.get('/editHistory', (req, res) => {
-    // Fetch edit history entries from the database
-    const sql = "SELECT edited_table, edited_field, new_value, timestamp FROM edit_history";
+app.get('/editHistory', async (req, res) => {
+    try {
+        const result = await con.query`SELECT edited_table, edited_field, new_value, timestamp FROM edit_history`;
 
-
-    con.query(sql, (err, result) => {
-        if (err) {
-            console.error("Error fetching edit history:", err);
-            return res.status(500).json({ Error: "Error fetching edit history" });
-        }
-
-        return res.json({ Status: "Success", EditHistory: result });
-    });
+        return res.json({ Status: 'Success', EditHistory: result.recordset });
+    } catch (err) {
+        console.error('Error fetching edit history:', err);
+        return res.status(500).json({ Error: 'Error fetching edit history' });
+    }
 });
 
-app.delete('/delete/:id', (req, res) => {
+app.delete('/delete/:id', async (req, res) => {
     const id = req.params.id;
-    const sql = "Delete FROM combined_data WHERE id = ?";
-    con.query(sql, [id], (err, result) => {
-        if (err) return res.json({ Error: "delete customer error in sql" });
-        return res.json({ Status: "Success" })
-    })
-})
+    try {
+        const result = await con.query`DELETE FROM combined_data WHERE id = ${id}`;
+        return res.json({ Status: 'Success' });
+    } catch (err) {
+        console.error('Error in running delete query:', err);
+        return res.json({ Status: 'Error', Error: 'Error in running delete query' });
+    }
+});
 
 const verifyUser = (req, res, next) => {
     const token = req.cookies.token;
@@ -368,61 +282,40 @@ app.get('/logout', (req, res) => {
     return res.json({ Status: "Success" });
 })
 
-app.post('/add', (req, res) => {
 
+app.post('/add', async (req, res) => {
     const {
-        ID,
-        name,
-        email,
-        service_type,
-        device_payment_plan,
-        credit_card,
-        credit_card_type,
-        account_last_payment_date,
-        address,
-        state,
-        postal_code
+        Name,
+        Email,
+        DevicePaymentPlan,
+        CreditCardNumber,
+        CreditCardType,
+        AccountLastPayment,
+        Address,
+        State,
+        PostalCode
     } = req.body;
 
-    const sql = `
-        INSERT INTO combined_data (
-            ID,
-            name,
-            email,
-            service_type,
-            device_payment_plan,
-            credit_card,
-            credit_card_type,
-            account_last_payment_date,
-            address,
-            state,
-            postal_code
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-    con.query(
-        sql,
-        [
-            ID,
-            name,
-            email,
-            service_type,
-            device_payment_plan,
-            credit_card,
-            credit_card_type,
-            account_last_payment_date,
-            address,
-            state,
-            postal_code
-        ],
-        (err, result) => {
-            if (err) {
-                console.error("Error in running query:", err);
-                return res.json({ Status: 'Error', Error: 'Error in running query' });
-            } else {
-                return res.json({ Status: 'Success' });
-            }
-        }
-    );
+    try {
+        const result = await con.query`
+            INSERT INTO combined_data (
+                id,
+                Name,
+                Email,
+                DevicePaymentPlan,
+                CreditCardNumber,
+                CreditCardType,
+                AccountLastPayment,
+                Address,
+                State,
+                PostalCode
+            ) VALUES (NEWID(), ${Name}, ${Email}, ${DevicePaymentPlan}, ${CreditCardNumber}, ${CreditCardType}, ${AccountLastPayment}, ${Address}, ${State}, ${PostalCode})`;
+        
+        return res.json({ Status: 'Success' });
+    } catch (err) {
+        console.error('Error in running query:', err);
+        return res.json({ Status: 'Error', Error: 'Error in running query' });
+    }
 });
 
 app.listen(8081, () => {

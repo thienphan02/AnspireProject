@@ -14,12 +14,12 @@ function Home({isDarkMode}) {
     useEffect(() => {
         axios.get('http://localhost:8081/adminCount')
             .then(res => {
-                setAdminCount(res.data[0].admin)
+                setAdminCount(res.data.recordset[0].admin)
             }).catch(err => console.log(err));
 
         axios.get('http://localhost:8081/customerCount')
             .then(res => {
-                setCustomerCount(res.data[0].users)
+                setCustomerCount(res.data.recordset[0].users)
             }).catch(err => console.log(err));
 
 

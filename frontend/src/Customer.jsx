@@ -7,6 +7,7 @@ function Customer({ isDarkMode }) {
     const [data, setData] = useState([])
     const [searchQuery, setSearchQuery] = useState('')
 
+    console.log('test')
     useEffect(() => {
         axios.get('http://localhost:8081/getCustomer')
             .then(res => {
@@ -19,6 +20,7 @@ function Customer({ isDarkMode }) {
             })
             .catch(err => console.log(err));
     }, [])
+
 
     const handleDelete = (id) => {
         axios.delete('http://localhost:8081/delete/' + id)
@@ -35,17 +37,16 @@ function Customer({ isDarkMode }) {
     const filteredData = data.filter((customer) => {
         const searchString = searchQuery.toLowerCase();
         return (
-            customer.ID.toLowerCase().includes(searchString) ||
-            customer.name.toLowerCase().includes(searchString) ||
-            customer.email.toLowerCase().includes(searchString) ||
-            customer.service_type.toLowerCase().includes(searchString) ||
-            customer.device_payment_plan.toLowerCase().includes(searchString) ||
-            customer.credit_card.toLowerCase().includes(searchString) ||
-            customer.credit_card_type.toLowerCase().includes(searchString) ||
-            customer.account_last_payment_date.toLowerCase().includes(searchString) ||
-            customer.address.toLowerCase().includes(searchString) ||
-            customer.state.toLowerCase().includes(searchString) ||
-            customer.postal_code.toLowerCase().includes(searchString)
+            customer.id.toLowerCase().includes(searchString) ||
+            customer.Name.toLowerCase().includes(searchString) ||
+            customer.Email.toLowerCase().includes(searchString) ||
+            customer.DevicePaymentPlan.toLowerCase().includes(searchString) ||
+            customer.CreditCardNumber.toLowerCase().includes(searchString) ||
+            customer.CreditCardType.toLowerCase().includes(searchString) ||
+            customer.AccountLastPayment.toLowerCase().includes(searchString) ||
+            customer.Address.toLowerCase().includes(searchString) ||
+            customer.State.toLowerCase().includes(searchString) ||
+            customer.PostalCode.toLowerCase().includes(searchString)
         );
     });
 
@@ -105,7 +106,6 @@ function Customer({ isDarkMode }) {
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
-                            <th>Service Type</th>
                             <th>Device Payment Plan</th>
                             <th>Credit Card Number</th>
                             <th>Credit Card Type</th>
@@ -119,24 +119,23 @@ function Customer({ isDarkMode }) {
                     <tbody>
                         {filteredData.map((customer, index) => {
                             return <tr key={index}>
-                                <td>{customer.ID}</td>
-                                <td>{customer.name}</td>
-                                <td>{customer.email}</td>
-                                <td>{customer.service_type}</td>
-                                <td>{customer.device_payment_plan}</td>
-                                <td>{customer.credit_card}</td>
-                                <td>{customer.credit_card_type}</td>
-                                <td>{formatDate(customer.account_last_payment_date)}</td>
-                                <td>{customer.address}</td>
-                                <td>{customer.state}</td>
-                                <td>{customer.postal_code}</td>
+                                <td>{customer.id}</td>
+                                <td>{customer.Name}</td>
+                                <td>{customer.Email}</td>
+                                <td>{customer.DevicePaymentPlan}</td>
+                                <td>{customer.CreditCardNumber}</td>
+                                <td>{customer.CreditCardType}</td>
+                                <td>{formatDate(customer.AccountLastPayment)}</td>
+                                <td>{customer.Address}</td>
+                                <td>{customer.State}</td>
+                                <td>{customer.PostalCode}</td>
                                 <td >
 
-                                    <Link to={`/editCustomer/` + customer.ID} className='button-44 mb-1'>
+                                    <Link to={`/editCustomer/` + customer.id} className='button-44 mb-1'>
                                         Update
                                     </Link>
 
-                                    <button onClick={e => handleDelete(customer.ID)} className='button-45'>
+                                    <button onClick={e => handleDelete(customer.id)} className='button-45'>
                                         Delete
                                     </button>
 
