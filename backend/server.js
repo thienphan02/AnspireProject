@@ -63,6 +63,32 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.post('/advanceUserLogin', async(req, res) => {
+    try {
+        const query = `Select * FROM advanceUsers WHERE email = @email`;
+        const request = con.request().input('email', sql.VarChar, req.body.email);
+        const result = await request.query(query);
+
+        if(result.recordset.length > 0) {
+            const user = result.recordset[0];
+
+            if(await bcrypt.compare(req.body.password, user.password)) {
+                const id = user.id;
+                const token = jwt.sign({role: "admin", id }, "jwt-secret-key", {expiresIn: '1d' });
+                res.cookie('token', token);
+                return res.json({Status: "Success" });
+            } else {
+                return res.json({Status: "Error", Error: "Wrong Email or Password" });
+            }
+        } else {
+          return res.json({ Status: "Error", Error: "User not found" });
+        }
+      } catch (err) {
+        console.error("Error in running query:", err);
+        return res.json({ Status: "Error", Error: "Error in running query" });
+      }
+    });
+
 app.post('/customerLogin', async (req, res) => {
     try {
       const query = `SELECT id, email, password FROM users WHERE email = @email`;
@@ -100,10 +126,10 @@ app.post('/customerLogin', async (req, res) => {
 });
 
 app.get('/get/:id', async (req, res) => {
-    const id = req.params.id;
+    const id = req.params.ID;
 
     try {
-        const result = await con.query`SELECT * FROM combined_data WHERE id = ${id}`;
+        const result = await con.query`SELECT * FROM combined_data WHERE ID = ${id}`;
 
         if (result.recordset.length === 0) {
             return res.json({ Status: 'Data not found', Result: [] });
@@ -117,7 +143,7 @@ app.get('/get/:id', async (req, res) => {
 });
 
 app.put('/update/:id', async (req, res) => {
-    const id = req.params.id;
+    const id = req.params.ID;
     const updatedData = req.body;
 
     try {
@@ -130,29 +156,29 @@ app.put('/update/:id', async (req, res) => {
 
         // Update the data in the database
         await con.request()
-            .input('id', sql.NVarChar(50), id)
-            .input('name', sql.NVarChar(30), updatedData.Name)
-            .input('email', sql.NVarChar(30), updatedData.Email)
-            .input('device_payment_plan', sql.NVarChar(30), updatedData.DevicePaymentPlan)
-            .input('credit_card', sql.NVarChar(30), updatedData.CreditCardNumber)
-            .input('credit_card_type', sql.NVarChar(30), updatedData.CreditCardType)
-            .input('account_last_payment_date', sql.DateTimeOffset, updatedData.AccountLastPayment)
-            .input('address', sql.NVarChar(30), updatedData.Address)
-            .input('state', sql.NVarChar(30), updatedData.State)
-            .input('postal_code', sql.NVarChar(30), updatedData.PostalCode)
+            .input('id', sql.NVarChar(50), ID)
+            .input('name', sql.NVarChar(30), updatedData.name)
+            .input('email', sql.NVarChar(30), updatedData.email)
+            .input('device_payment_plan', sql.NVarChar(30), updatedData.device_payment_plan)
+            .input('credit_card', sql.NVarChar(30), updatedData.credit_card)
+            .input('credit_card_type', sql.NVarChar(30), updatedData.credit_card_type)
+            .input('account_last_payment_date', sql.DateTimeOffset, updatedData.account_last_payment_date)
+            .input('address', sql.NVarChar(30), updatedData.address)
+            .input('state', sql.NVarChar(30), updatedData.state)
+            .input('postal_code', sql.NVarChar(30), updatedData.postal_code)
             .query(`
                 UPDATE combined_data
                 SET
-                Name = @name,
-                Email = @email,
-                DevicePaymentPlan = @device_payment_plan,
-                CreditCardNumber = @credit_card,
-                CreditCardType = @credit_card_type,
-                AccountLastPayment = @account_last_payment_date,
-                Address = @address,
-                State = @state,
-                PostalCode = @postal_code
-                WHERE id = @id
+                name = @name,
+                email = @email,
+                device_payment_plan = @device_payment_plan,
+                credit_card = @credit_card,
+                credit_card_type = @credit_card_type,
+                account_last_payment_date = @account_last_payment_date,
+                address = @address,
+                state = @state,
+                postal_code = @postal_code
+                WHERE ID = @id
             `);
 
         // Fetch the current timestamp from the database
@@ -285,31 +311,31 @@ app.get('/logout', (req, res) => {
 
 app.post('/add', async (req, res) => {
     const {
-        Name,
-        Email,
-        DevicePaymentPlan,
-        CreditCardNumber,
-        CreditCardType,
-        AccountLastPayment,
-        Address,
-        State,
-        PostalCode
+        name,
+        email,
+        device_payment_plan,
+        credit_card,
+        credit_card_type,
+        account_last_payment_date,
+        address,
+        state,
+        postal_code
     } = req.body;
 
     try {
         const result = await con.query`
             INSERT INTO combined_data (
-                id,
-                Name,
-                Email,
-                DevicePaymentPlan,
-                CreditCardNumber,
-                CreditCardType,
-                AccountLastPayment,
-                Address,
-                State,
-                PostalCode
-            ) VALUES (NEWID(), ${Name}, ${Email}, ${DevicePaymentPlan}, ${CreditCardNumber}, ${CreditCardType}, ${AccountLastPayment}, ${Address}, ${State}, ${PostalCode})`;
+                ID,
+                name,
+                email,
+                device_payment_plan,
+                credit_card,
+                credit_card_type,
+                account_last_payment_date,
+                address,
+                state,
+                postal_code
+            ) VALUES (NEWID(), ${name}, ${email}, ${device_payment_plan}, ${credit_card}, ${credit_card_type}, ${account_last_payment_date}, ${address}, ${state}, ${postal_code})`;
         
         return res.json({ Status: 'Success' });
     } catch (err) {
