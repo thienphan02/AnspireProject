@@ -4,6 +4,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import sql from 'mssql';
 
 const app = express();
 app.use(cors({
@@ -15,24 +16,42 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
-const con = mysql.createConnection({
-    host: "localhost",
-    port: "3307",
-    user: "root",
-    password: "",
-    database: "signup"
-})
+const config = {
+  user: 'group4',
+  password: 'olemi$$2023',
+  server: 'anspire.database.windows.net',
+  database: 'anspireDB',
+  options: {
+    encrypt: true,
+  },
+};
 
-con.connect(function (err) {
-    if (err) {
-        console.log("Error in Connection:", err)
-    } else {
-        console.log("Connected")
-    }
-})
+const con = sql.connect(config, (err) => {
+  if (err) {
+    console.error('Error in connection:', err);
+  } else {
+    console.log('Connected');
+  }
+});
+
+// const con = mysql.createConnection({
+//     host: "localhost",
+//     port: "3307",
+//     user: "root",
+//     password: "",
+//     database: "signup"
+// })
+
+// con.connect(function (err) {
+//     if (err) {
+//         console.log("Error in Connection:", err)
+//     } else {
+//         console.log("Connected")
+//     }
+// }) 
 
 app.post('/login', (req, res) => {
-    const sql = "SELECT * FROM admin WHERE email = ?";
+    const sql = "SELECT * FROM admin WHERE email = ?"
 
     con.query(sql, [req.body.email], (err, result) => {
         if (err) return res.json({ Status: "Error", Error: "Error in running query" });
@@ -76,69 +95,30 @@ app.post('/customerLogin', (req, res) => {
         }
     });
 });
-// app.post('/customerLogin', (req, res) => {
-//     const sql = "SELECT * FROM users Where email = ? AND  password = ?";
 
-//     con.query(sql, [req.body.email, req.body.password], (err, result) => {
-//         if (err) return res.json({ Status: "Error", Error: "Error in runnig query" });
-//         if (result.length > 0) {
-//             const id = result[0].id;
-//             const token = jwt.sign({ role: "admin" }, "jwt-secret-key", { expiresIn: '1d' });
-//             res.cookie('token', token);
-//             return res.json({ Status: "Success" })
-//         } else {
-//             return res.json({ Status: "Error", Error: "Wrong Email or Password" });
-//         }
-//     })
-// })
+app.post('/advanceLogin', (req, res) => {
+    const sql = "SELECT * FROM advance_user WHERE email = ?";
 
-con.query("SELECT id, password FROM admin", (err, results) => {
-    if (err) {
-        console.error("Error fetching admin passwords from the database:", err);
-    } else {
-        results.forEach((admin) => {
-            const id = admin.id;
-            const password = admin.password;
+    con.query(sql, [req.body.email], (err, result) => {
+        if (err) return res.json({ Status: "Error", Error: "Error in running query" });
 
-            // Hash the password
-            const hashedPassword = bcrypt.hashSync(password, 10);
+        if (result.length > 0) {
+            const users = result[0];
 
-            // Update the hashed password in the database
-            const updateSql = "UPDATE admin SET password = ? WHERE id = ?";
-            con.query(updateSql, [hashedPassword, id], (updateError, updateResult) => {
-                if (updateError) {
-                    console.error("Error updating password in the database:", updateError);
-                } else {
-                    console.log("Password updated in the database.");
-                }
-            });
-        });
-    }
+            if (bcrypt.compare(req.body.password, users.password)) {
+                const id = users.id;
+                const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
+                res.cookie('token', token);
+                return res.json({ Status: "Success" });
+            } else {
+                return res.json({ Status: "Error", Error: "Wrong Email or Password" });
+            }
+        } else {
+            return res.json({ Status: "Error", Error: "User not found" });
+        }
+    });
 });
 
-con.query("SELECT id, password FROM users", (err, results) => {
-    if (err) {
-        console.error("Error fetching user passwords from the database:", err);
-    } else {
-        results.forEach((user) => {
-            const id = user.id;
-            const password = user.password;
-
-            // Hash the password
-            const hashedPassword = bcrypt.hashSync(password, 10);
-
-            // Update the hashed password in the database
-            const updateSql = "UPDATE users SET password = ? WHERE id = ?";
-            con.query(updateSql, [hashedPassword, id], (updateError, updateResult) => {
-                if (updateError) {
-                    console.error("Error updating password in the users database:", updateError);
-                } else {
-                    console.log("Password updated in the users database.");
-                }
-            });
-        });
-    }
-});
 
 
 app.get('/getCustomer', (req, res) => {
@@ -320,19 +300,31 @@ app.get('/userDashboard', verifyUser, (req, res) => {
 })
 
 app.get('/adminCount', (req, res) => {
-    const sql = "Select count(id) as admin from admin";
-    con.query(sql, (err, result) => {
-        if (err) return res.json({ Error: "Error in runnig query" });
-        return res.json(result);
-    })
-})
-app.get('/customerCount', (req, res) => {
-    const sql = "Select count(id) as users from combined_data";
-    con.query(sql, (err, result) => {
-        if (err) return res.json({ Error: "Error in runnig query" });
-        return res.json(result);
-    })
-})
+    const query = 'SELECT COUNT(*) AS admin FROM admin';
+    con.query(query, (err, results) => {
+      if (err) {
+        console.error('Error executing the query:', err);
+        res.status(500).json({ error: 'Error retrieving admin count' });
+      } else {
+        const adminCount = results.recordset[0].admin;
+        res.json([{ admin: adminCount }]);
+      }
+    });
+  });
+
+  app.get('/customerCount', (req, res) => {
+    const sqlQuery = "SELECT COUNT(*) AS users FROM combined_data";
+  
+    con.query(sqlQuery, (err, results) => {
+      if (err) {
+        console.error('Error running query:', err);
+        res.status(500).json({ Error: "Error in running query" });
+      } else {
+        const customerCount = results.recordset[0].users;
+        res.json([{ users: customerCount }]);
+      }
+    });
+  });
 
 app.get('/logout', (req, res) => {
     res.clearCookie('token');
@@ -396,6 +388,90 @@ app.post('/add', (req, res) => {
     );
 });
 
-app.listen(8081, () => {
+app.get('/getUser', (req, res) => {
+    const sql = "SELECT id, email, role FROM users"
+    con.query(sql, (err, result) => {
+        if (err) return res.json({ Error: "Get customer error in sql" })
+        return res.json({ Status: "Success", Result: result })
+    })
+})
+
+app.get('/getAdvanceUser', (req, res) => {
+    const sql = "SELECT id, email, role FROM advance_user"
+    con.query(sql, (err, result) => {
+        if (err) return res.json({ Error: "Get customer error in sql" })
+        return res.json({ Status: "Success", Result: result })
+    })
+})
+
+app.post('/demoteUser/:id', (req, res) => {
+    const id = req.params.id;
+    const checkAdvanceUserQuery = "SELECT * FROM advance_user WHERE id = ?";
+    con.query(checkAdvanceUserQuery, [id], (err, result) => {
+      if (err) {
+        return res.json({ Error: "Database error while checking the user's role." });
+      }
+      if (result.length === 0) {
+        return res.json({ Error: "User not found or not an advance user." });
+      }
+  
+      const userToDemote = result[0];
+  
+      // Update user's role and move password
+      const insertUserQuery = "INSERT INTO users (email, role, password) VALUES (?, ?, ?)";
+      con.query(insertUserQuery, [userToDemote.email, 'user', userToDemote.password], (err, result) => {
+        if (err) {
+          return res.json({ Error: "Demotion failed." });
+        }
+  
+        const deleteAdvanceUserQuery = "DELETE FROM advance_user WHERE id = ?";
+        con.query(deleteAdvanceUserQuery, [id], (err, result) => {
+          if (err) {
+            return res.json({ Error: "Demotion failed." });
+          }
+  
+          return res.json({ Status: "Success", Message: "User demoted successfully." });
+        });
+      });
+    });
+  });
+  
+  app.post('/promoteUser/:id', (req, res) => {
+    const id = req.params.id;
+  
+    const checkRegularUserQuery = "SELECT * FROM users WHERE id = ?";
+    con.query(checkRegularUserQuery, [id], (err, result) => {
+      if (err) {
+        return res.json({ Error: "Database error while checking the user's role." });
+      }
+      if (result.length === 0) {
+        return res.json({ Error: "User not found or not a regular user." });
+      }
+  
+      const userToPromote = result[0];
+  
+      // Update user's role and move password
+      const insertAdvanceUserQuery = "INSERT INTO advance_user (email, role, password) VALUES (?, ?, ?)";
+      con.query(insertAdvanceUserQuery, [userToPromote.email, 'advance_user', userToPromote.password], (err, result) => {
+        if (err) {
+          return res.json({ Error: "Promotion failed." });
+        }
+  
+        const deleteRegularUserQuery = "DELETE FROM users WHERE id = ?";
+        con.query(deleteRegularUserQuery, [id], (err, result) => {
+          if (err) {
+            return res.json({ Error: "Promotion failed." });
+          }
+  
+          return res.json({ Status: "Success", Message: "User promoted to advance user successfully." });
+        });
+      });
+    });
+  });
+  
+  
+  
+const PORT = process.env.PORT || 8081
+app.listen(PORT, () => {
     console.log("Running")
 })
