@@ -52,8 +52,6 @@
   transform: translateY(-3px);
 }
 
-
-
 .nav-link:hover {
     display: inline-block; 
     background-color: #4a5767; 
@@ -66,8 +64,6 @@
     text-align: center;
 }
 
-
-/* Add this to your style.css */
 .search__container {
     padding-top: 64px;
   }
@@ -160,7 +156,6 @@
     transform: translateY(2px);
   }
   
-
   .button-28 {
     align-items: center;
     appearance: none;
@@ -206,7 +201,8 @@
     transform: translateY(2px);
   }
 
- /* CSS */
+
+
 .button-45 {
     align-items: center;
     background-color: #FFE7E7;
@@ -265,7 +261,6 @@
     width: 70px; 
   }
   
-  /* CSS */
 .button-44 {
     align-items: center;
     background-color: #e7e9ff;
@@ -318,8 +313,6 @@
     box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
     color: #FFFFFF;
   }
-
-
 
   /* dark-mode.css */
 .dark-mode {
@@ -397,6 +390,11 @@
 
 .user-button {
   background: #4a90e2; /* Blue background color */
+  animation: buttonPulse 2s ease infinite;
+}
+
+.AdvanceUser-button {
+  background: #d06ee3; /* purple background color */
   animation: buttonPulse 2s ease infinite;
 }
 

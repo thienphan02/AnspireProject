@@ -13,14 +13,24 @@ function Home({isDarkMode}) {
 
     useEffect(() => {
         axios.get('http://localhost:8081/adminCount')
-            .then(res => {
-                setAdminCount(res.data[0].admin)
-            }).catch(err => console.log(err));
+        .then(res => {
+            if (res.data && res.data.length > 0 && res.data[0].admin) {
+                setAdminCount(res.data[0].admin);
+            } else {
+                console.error("Invalid data received from adminCount API");
+            }
+        })
+        .catch(err => console.error(err));
 
-        axios.get('http://localhost:8081/customerCount')
-            .then(res => {
-                setCustomerCount(res.data[0].users)
-            }).catch(err => console.log(err));
+    axios.get('http://localhost:8081/customerCount')
+        .then(res => {
+            if (res.data && res.data.length > 0 && res.data[0].users) {
+                setCustomerCount(res.data[0].users);
+            } else {
+                console.error("Invalid data received from customerCount API");
+            }
+        })
+        .catch(err => console.error(err));
 
 
         axios.get('http://localhost:8081/editHistory')

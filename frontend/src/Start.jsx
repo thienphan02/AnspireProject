@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import './style.css'; // Import your CSS file
+import './style.css';
 
 
 function Start() {
@@ -17,6 +17,12 @@ function Start() {
             onClick={() => navigate('/customerLogin')}
           >
             User
+          </button>
+          <button
+            className='start-button AdvanceUser-button'
+            onClick={() => navigate('/advanceLogin')}
+          >
+            Advance User
           </button>
           <button
             className='start-button admin-button'

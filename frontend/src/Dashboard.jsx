@@ -48,6 +48,11 @@ function Dashboard({ isDarkMode, toggleDarkMode }) {
 										</Link>
 									</li>
 									<li>
+										<Link to="/advanceUser" className="nav-link text-white px-0 align-middle">
+											<i className="fs-4 bi-people me-2"></i> <span className="ms-1 d-none d-sm-inline">User</span>
+										</Link>
+									</li>
+									<li>
 										<Link to='/customer' className="nav-link px-0 align-middle text-white">
 											<i className="fs-4 bi-person me-2"></i> <span className="ms-1 d-none d-sm-inline">Customer</span>
 										</Link>
@@ -63,7 +68,7 @@ function Dashboard({ isDarkMode, toggleDarkMode }) {
 						<div className="col p-0 m-0">
 							<div className='p-3 d-flex justify-content-between align-items-center shadow'>
 								<h4 className="text-center mb-0 flex-grow-1">Customers Management System</h4>
-								<div>
+								<div className='mode-button'>
 									<button onClick={toggleDarkMode} className="btn btn-dark">
 										{isDarkMode ? 'Light Mode' : 'Dark Mode'}
 									</button>

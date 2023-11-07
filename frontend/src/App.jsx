@@ -10,6 +10,9 @@ import Start from './Start'
 import CustomerDetail from './CustomerDetail'
 import CustomerLogin from './CustomerLogin'
 import UserDashboard from './UserDashboard'
+import AdvanceUser from './AdvanceUser'
+import AdvanceDetail from './AdvanceDetail'
+import AdvanceLogin from './AdvanceLogin'
 
 function App() {
 
@@ -24,6 +27,7 @@ function App() {
         <Route path="/" element={<Dashboard isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}>
           <Route path='' element={<Home isDarkMode={isDarkMode}/>}/>
           <Route path='/home' element={<Home isDarkMode={isDarkMode}/>} />
+          <Route path='/advanceUser' element={<AdvanceUser isDarkMode={isDarkMode}/>} />
           <Route path="/customer" element={<Customer isDarkMode={isDarkMode}/>} />
           <Route path="/add" element={<AddCustomer />} />
           <Route path="/editCustomer/:id" element={<EditCustomer />} />
@@ -31,8 +35,10 @@ function App() {
         <Route path="login" element={<Login />} />
         <Route path="start" element={<Start />} />
         <Route path="customerLogin" element={<CustomerLogin />} />
+        <Route path="advanceLogin" element={<AdvanceLogin />} />
         <Route path='/' element={<UserDashboard />}>
           <Route path="customerDetail/:id" element={<CustomerDetail />} />
+          <Route path="advanceDetail/:id" element={<AdvanceDetail />} />
         </Route>
     </Routes>
    </BrowserRouter>

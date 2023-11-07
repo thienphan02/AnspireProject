@@ -10,7 +10,6 @@ function EditCustomer() {
         ID: '',
 		name: '',
 		email: '',
-		service_type: '',
         device_payment_plan: '',
         credit_card: '',
         credit_card_type: '',
@@ -30,7 +29,6 @@ function EditCustomer() {
 				ID,
 				name,
 				email,
-				service_type,
 				device_payment_plan,
 				credit_card,
 				credit_card_type,
@@ -45,7 +43,6 @@ function EditCustomer() {
 				ID,
 				name,
 				email,
-				service_type,
 				device_payment_plan,
 				credit_card,
 				credit_card_type,
@@ -93,11 +90,7 @@ function EditCustomer() {
 					<input type="email" className ="form-control" id="inputEmail" placeholder='Enter Email' autoComplete='off'
 					onChange={e => setData({...data, email: e.target.value})} value={data.email}/>
 				</div>
-				<div className ="col-12">
-					<label htmlFor="inputServiceType" className ="form-label">Service Type</label>
-					<input type="text" className ="form-control" id="inputServiceType" placeholder='Enter Service Type' autoComplete='off'
-					 onChange={e => setData({...data, service_type: e.target.value})} value={data.service_type}/>
-				</div>
+				
 				<div className ="col-12">
 					<label htmlFor="inputDevicePaymentPlan" className ="form-label">Device Payment Plan</label>
 					<input type="text" className ="form-control" id="inputDevicePaymentPlan" placeholder="Enter Device Payment Plan" autoComplete='off'

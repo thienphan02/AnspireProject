@@ -20,18 +20,6 @@ function Customer({ isDarkMode }) {
             .catch(err => console.log(err));
     }, [])
 
-    const handleDelete = (id) => {
-        axios.delete('http://localhost:8081/delete/' + id)
-            .then(res => {
-                if (res.data.Status === "Success") {
-                    window.location.reload(true);
-                } else {
-                    alert("Error")
-                }
-            })
-            .catch(err => console.log(err));
-    }
-
     const filteredData = data.filter((customer) => {
         const searchString = searchQuery.toLowerCase().split(' ');
         return searchString.every((term) => {
@@ -39,6 +27,7 @@ function Customer({ isDarkMode }) {
                 customer.ID.toLowerCase().includes(term) ||
                 customer.name.toLowerCase().includes(term) ||
                 customer.email.toLowerCase().includes(term) ||
+                customer.service_type.toLowerCase().includes(term) ||
                 customer.device_payment_plan.toLowerCase().includes(term) ||
                 customer.credit_card.toLowerCase().includes(term) ||
                 customer.credit_card_type.toLowerCase().includes(term) ||
@@ -106,6 +95,7 @@ function Customer({ isDarkMode }) {
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Service Type</th>
                             <th>Device Payment Plan</th>
                             <th>Credit Card Number</th>
                             <th>Credit Card Type</th>
@@ -122,6 +112,7 @@ function Customer({ isDarkMode }) {
                                 <td>{customer.ID}</td>
                                 <td>{customer.name}</td>
                                 <td>{customer.email}</td>
+                                <td>{customer.service_type}</td>
                                 <td>{customer.device_payment_plan}</td>
                                 <td>{customer.credit_card}</td>
                                 <td>{customer.credit_card_type}</td>
@@ -134,10 +125,6 @@ function Customer({ isDarkMode }) {
                                     <Link to={`/editCustomer/` + customer.ID} className='button-44 mb-1'>
                                         Update
                                     </Link>
-
-                                    <button onClick={e => handleDelete(customer.ID)} className='button-45'>
-                                        Delete
-                                    </button>
 
                                 </td>
                             </tr>
