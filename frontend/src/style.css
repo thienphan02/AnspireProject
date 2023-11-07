@@ -402,15 +402,3 @@
   background: #ff6c47; /* Orange background color */
   animation: buttonPulse 2s ease infinite reverse;
 }
-
-/* @keyframes buttonPulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
-} */

@@ -130,7 +130,6 @@ function Customer({ isDarkMode }) {
                                 <td>{customer.state}</td>
                                 <td>{customer.postal_code}</td>
                                 <td >
-
                                     <Link to={`/editCustomer/` + customer.ID} className='button-44 mb-1'>
                                         Update
                                     </Link>

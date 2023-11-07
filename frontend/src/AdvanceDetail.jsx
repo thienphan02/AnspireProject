@@ -78,7 +78,6 @@ function Customer({ isDarkMode }) {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
-
                 <div className="d-flex justify-content-between">
                     <Link to="/add" className='button-28 mb-3 mt-3'>Add Customer</Link>
                     <button className='button-29 mb-3 mt-3' onClick={exportCSV}>

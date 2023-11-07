@@ -8,6 +8,7 @@ function CustomerLogin() {
         email: '',
         password: ''
     })
+    
     axios.defaults.withCredentials = true;
     const navigate = useNavigate()
     axios.defaults.withCredentials = true;

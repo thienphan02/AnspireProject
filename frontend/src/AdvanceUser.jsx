@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 function AdvanceUser() {
   const [users, setUsers] = useState([]);
   const [advanceUsers, setAdvanceUser] = useState([])
-  const navigate = useLocation()
+  const location = useLocation()
 
   useEffect(() => {
     // Fetch the list of advance users from the server

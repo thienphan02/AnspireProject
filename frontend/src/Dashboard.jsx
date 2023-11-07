@@ -64,7 +64,6 @@ function Dashboard({ isDarkMode, toggleDarkMode }) {
 								</ul>
 							</div>
 						</div>
-
 						<div className="col p-0 m-0">
 							<div className='p-3 d-flex justify-content-between align-items-center shadow'>
 								<h4 className="text-center mb-0 flex-grow-1">Customers Management System</h4>

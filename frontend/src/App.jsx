@@ -17,7 +17,6 @@ import AdvanceLogin from './AdvanceLogin'
 function App() {
 
   const [isDarkMode, setIsDarkMode] = useState(false);
-
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };

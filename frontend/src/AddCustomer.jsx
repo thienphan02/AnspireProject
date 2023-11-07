@@ -14,6 +14,7 @@ function AddCustomer() {
 		address: '',
 		state: '',
 		postal_code: ''
+	
 	})
 	const navigate = useNavigate()
 	const [csvFile, setCsvFile] = useState(null)
