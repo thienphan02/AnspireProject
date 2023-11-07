@@ -8,8 +8,8 @@ function CustomerDetail() {
         axios.get('http://localhost:8081/getCustomer')
             .then(res => {
                 if (res.data.Status === "Success") {
-                    console.log(res.data.Result)
-                    setData(res.data.Result);
+                    console.log(res.data.Result.recordset)
+                    setData(res.data.Result.recordset);
                 } else {
                     alert("Error")
                 }

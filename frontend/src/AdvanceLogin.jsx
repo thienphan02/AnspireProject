@@ -8,7 +8,7 @@ function CustomerLogin() {
         email: '',
         password: ''
     })
-    
+
     axios.defaults.withCredentials = true;
     const navigate = useNavigate()
     axios.defaults.withCredentials = true;
@@ -28,6 +28,7 @@ function CustomerLogin() {
         .catch(err => console.log(err));
     }
 
+    
     return (
         <div className='d-flex justify-content-center align-items-center vh-100 loginPage'>
             <div className='p-3 rounded w-25 border loginBox'>
