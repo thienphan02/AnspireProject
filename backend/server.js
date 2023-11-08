@@ -1,10 +1,9 @@
 import express from 'express'
-import mysql from 'mysql'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import sql from 'mssql';
+//import dbConnection from './config/dbConfig.js' // Via this import, it sets up the connection, not using this currently, might not need to.
 
 const app = express();
 app.use(cors({
@@ -16,235 +15,201 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
-const config = {
-  user: 'group4',
-  password: 'olemi$$2023',
-  server: 'anspire.database.windows.net',
-  database: 'anspireDB',
-  options: {
-    encrypt: true,
-  },
-};
-
-const con = sql.connect(config, (err) => {
-  if (err) {
-    console.error('Error in connection:', err);
-  } else {
-    console.log('Connected');
+import sql from 'mssql'
+let con;
+async function connectToDatabase() {
+    try {
+      con = await sql.connect({
+        server: 'anspire.database.windows.net',
+        database: 'anspireDB',
+        user: 'group4',
+        password: 'olemi$$2023',
+        options: {
+          encrypt: true,
+          enableArithAbort: true
+        }
+      });
+      console.log('Connected to the database');
+    } catch (error) {
+      console.error('Error connecting to the database:', error);
+    }
   }
-});
+await connectToDatabase(); // Make a global connection with con as the connection variable
 
-// const con = mysql.createConnection({
-//     host: "localhost",
-//     port: "3307",
-//     user: "root",
-//     password: "",
-//     database: "signup"
-// })
+app.post('/login', async (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
 
-// con.connect(function (err) {
-//     if (err) {
-//         console.log("Error in Connection:", err)
-//     } else {
-//         console.log("Connected")
-//     }
-// }) 
+    try {
+        const result = await con.query`SELECT * FROM admin WHERE email = ${email}`;
+        const admin = result.recordset[0];
 
-app.post('/login', (req, res) => {
-    const sql = "SELECT * FROM admin WHERE email = ?"
-
-    con.query(sql, [req.body.email], (err, result) => {
-        if (err) return res.json({ Status: "Error", Error: "Error in running query" });
-
-        if (result.length > 0) {
-            const admin = result[0];
-
-            if (bcrypt.compare(req.body.password, admin.password)) {
+        if (admin) {
+            const passwordMatch = await bcrypt.compare(password, admin.password);
+            if (passwordMatch) {
                 const id = admin.id;
-                const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
+                const token = jwt.sign({ role: 'admin', id }, 'jwt-secret-key', { expiresIn: '1d' });
                 res.cookie('token', token);
-                return res.json({ Status: "Success" });
+                return res.json({ Status: 'Success' });
             } else {
-                return res.json({ Status: "Error", Error: "Wrong Email or Password" });
+                return res.json({ Status: 'Error', Error: 'Wrong Email or Password' });
             }
         } else {
-            return res.json({ Status: "Error", Error: "Admin not found" });
+            return res.json({ Status: 'Error', Error: 'Admin not found' });
         }
-    });
+    } catch (err) {
+        console.error('Error in running query:', err);
+        return res.json({ Status: 'Error', Error: 'Error in running query' });
+    }
 });
 
-app.post('/customerLogin', (req, res) => {
-    const sql = "SELECT * FROM users WHERE email = ?";
+app.post('/customerLogin', async (req, res) => {
+    try {
+      const query = `SELECT id, email, password FROM users WHERE email = @email`;
+      const request = con.request().input('email', sql.VarChar, req.body.email);
+      const result = await request.query(query);
 
-    con.query(sql, [req.body.email], (err, result) => {
-        if (err) return res.json({ Status: "Error", Error: "Error in running query" });
-
-        if (result.length > 0) {
-            const users = result[0];
-
-            if (bcrypt.compare(req.body.password, users.password)) {
-                const id = users.id;
-                const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
-                res.cookie('token', token);
-                return res.json({ Status: "Success" });
-            } else {
-                return res.json({ Status: "Error", Error: "Wrong Email or Password" });
-            }
+      if (result.recordset.length > 0) {
+        const user = result.recordset[0];
+  
+        if (await bcrypt.compare(req.body.password, user.password)) {
+          const id = user.id;
+          const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
+          res.cookie('token', token);
+          return res.json({ Status: "Success" });
         } else {
-            return res.json({ Status: "Error", Error: "User not found" });
+          return res.json({ Status: "Error", Error: "Wrong Email or Password" });
         }
-    });
+      } else {
+        return res.json({ Status: "Error", Error: "User not found" });
+      }
+    } catch (err) {
+      console.error("Error in running query:", err);
+      return res.json({ Status: "Error", Error: "Error in running query" });
+    }
+  });
+
+  app.get('/getCustomer', async (req, res) => {
+    try {
+        const result = await con.request().query('SELECT * FROM combined_data');
+        return res.json({ Status: 'Success', Result: result.recordset });
+    } catch (err) {
+        console.error('Error fetching customer data from the database:', err);
+        return res.json({ Error: 'Get customer error in SQL' });
+    }
 });
 
-app.post('/advanceLogin', (req, res) => {
-    const sql = "SELECT * FROM advance_user WHERE email = ?";
+app.get('/get/:id', async (req, res) => {
+    const id = req.params.ID;
 
-    con.query(sql, [req.body.email], (err, result) => {
-        if (err) return res.json({ Status: "Error", Error: "Error in running query" });
+    try {
+        const result = await con.query`SELECT * FROM combined_data WHERE ID = ${id}`;
 
-        if (result.length > 0) {
-            const users = result[0];
-
-            if (bcrypt.compare(req.body.password, users.password)) {
-                const id = users.id;
-                const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
-                res.cookie('token', token);
-                return res.json({ Status: "Success" });
-            } else {
-                return res.json({ Status: "Error", Error: "Wrong Email or Password" });
-            }
-        } else {
-            return res.json({ Status: "Error", Error: "User not found" });
+        if (result.recordset.length === 0) {
+            return res.json({ Status: 'Data not found', Result: [] });
         }
-    });
+
+        return res.json({ Status: 'Success', Result: result.recordset });
+    } catch (err) {
+        console.error('Database error:', err);
+        return res.json({ Status: 'Error', Error: 'Get customer error in sql' });
+    }
 });
 
-
-
-app.get('/getCustomer', (req, res) => {
-    const sql = "SELECT * FROM combined_data"
-    con.query(sql, (err, result) => {
-        if (err) return res.json({ Error: "Get customer error in sql" })
-        return res.json({ Status: "Success", Result: result })
-    })
-})
-
-app.get('/get/:id', (req, res) => {
-    const id = req.params.id;
-
-
-    const sql = "SELECT * FROM combined_data WHERE id = ?";
-    con.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error("Database error:", err);
-            return res.json({ Error: "Get customer error in sql" });
-        }
-
-        if (result.length === 0) {
-            return res.json({ Status: "Data not found", Result: [] });
-        }
-
-        return res.json({ Status: "Success", Result: result });
-    });
-});
-
-app.put('/update/:id', (req, res) => {
-    const id = req.params.id;
+app.put('/update/:id', async (req, res) => {
+    const id = req.params.ID;
     const updatedData = req.body;
 
-    // Fetch the current data from the database before the update
-    const sqlGetOldData = "SELECT * FROM combined_data WHERE ID = ?";
-    con.query(sqlGetOldData, [id], (err, result) => {
-        if (err) {
-            console.error("Error fetching old data:", err);
-            return res.json({ Status: "Error", Error: "Error fetching old data" });
-        }
+    try {
+        // Fetch the current data from the database before the update
+        const result = await con.request()
+            .input('id', sql.NVarChar(50), id)
+            .query('SELECT * FROM combined_data WHERE ID = @id');
 
-        const oldData = result[0];
+        const oldData = result.recordset[0];
 
         // Update the data in the database
-        const sqlUpdateData = `
-            UPDATE combined_data
-            SET
-            ID = ?,
-            name = ?,
-            email = ?,
-            service_type = ?,
-            device_payment_plan = ?,
-            credit_card = ?,
-            credit_card_type = ?,
-            account_last_payment_date = ?,
-            address = ?,
-            state = ?,
-            postal_code = ?
-            WHERE ID = ?`;
+        await con.request()
+            .input('id', sql.NVarChar(50), ID)
+            .input('name', sql.NVarChar(30), updatedData.name)
+            .input('email', sql.NVarChar(30), updatedData.email)
+            .input('device_payment_plan', sql.NVarChar(30), updatedData.device_payment_plan)
+            .input('credit_card', sql.NVarChar(30), updatedData.credit_card)
+            .input('credit_card_type', sql.NVarChar(30), updatedData.credit_card_type)
+            .input('account_last_payment_date', sql.DateTimeOffset, updatedData.account_last_payment_date)
+            .input('address', sql.NVarChar(30), updatedData.address)
+            .input('state', sql.NVarChar(30), updatedData.state)
+            .input('postal_code', sql.NVarChar(30), updatedData.postal_code)
+            .query(`
+                UPDATE combined_data
+                SET
+                name = @name,
+                email = @email,
+                device_payment_plan = @device_payment_plan,
+                credit_card = @credit_card,
+                credit_card_type = @credit_card_type,
+                account_last_payment_date = @account_last_payment_date,
+                address = @address,
+                state = @state,
+                postal_code = @postal_code
+                WHERE ID = @id
+            `);
 
-        con.query(sqlUpdateData, [
-            updatedData.ID,
-            updatedData.name,
-            updatedData.email,
-            updatedData.service_type,
-            updatedData.device_payment_plan,
-            updatedData.credit_card,
-            updatedData.credit_card_type,
-            updatedData.account_last_payment_date,
-            updatedData.address,
-            updatedData.state,
-            updatedData.postal_code,
-            id
-        ], (err, result) => {
-            if (err) {
-                console.error("Update customer error in SQL:", err);
-                return res.json({ Status: "Error", Error: "Update customer error in SQL" });
-            }
+        // Fetch the current timestamp from the database
+        const timestampResult = await con.request().query('SELECT CURRENT_TIMESTAMP AS timestamp');
+        const timestamp = timestampResult.recordset[0].timestamp;
 
-            // Fetch the current timestamp from the database
-            const sqlGetCurrentTimestamp = "SELECT CURRENT_TIMESTAMP() AS timestamp";
-            con.query(sqlGetCurrentTimestamp, (err, timestampResult) => {
-                if (err) {
-                    console.error("Error fetching current timestamp:", err);
-                    return res.json({ Status: "Error", Error: "Error fetching timestamp" });
-                }
+        // Log the edit history entries for the updated fields
+        const editHistory = getEditHistory(oldData, updatedData, timestamp);
 
-                const timestamp = timestampResult[0].timestamp;
-
-                // Log the edit history entries for the updated fields
-                const editHistory = getEditHistory(oldData, updatedData, timestamp);
-
-                if (editHistory.length > 0) {
-                    const sqlLogEditHistory = `
+        if (editHistory.length > 0) {
+            editHistory.forEach(async entry => {
+                await con.request()
+                    .input('edited_field1', sql.VarChar(255), entry.old_value)
+                    .input('edited_table1', sql.VarChar(255), entry.edited_field)
+                    .input('new_value', sql.VarChar(255), entry.new_value)
+                    .input('timestamp', sql.DateTime, entry.timestamp)
+                    .query(`
                         INSERT INTO edit_history (edited_table, edited_field, new_value, timestamp)
-                        VALUES (?, ?, ?, ?)`;
-
-                    editHistory.forEach(entry => {
-                        con.query(sqlLogEditHistory, [
-                            entry.edited_field, // edited_field
-                            entry.old_value, // edited_table
-                            entry.new_value, // new_value
-                            entry.timestamp // timestamp
-                        ], (err, logResult) => {
-                            if (err) {
-                                console.error("Error logging edit history:", err);
-                            }
-                        });
-                    });
-                }
-
-                return res.json({ Status: "Success" });
+                        VALUES (@edited_table1, @edited_field1, @new_value, @timestamp)
+                    `);
             });
-        });
-    });
+        }
+
+        return res.json({ Status: "Success" });
+    } catch (err) {
+        console.error("Error updating customer:", err);
+        return res.json({ Status: "Error", Error: "Error updating customer" });
+    }
 });
+
+// Function to handle inserting a date into a string for edit_history (turns date to string)
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${month}/${day}/${year}`;
+}
 
 // Function to determine the edited fields and their new values by comparing old and updated data
 function getEditHistory(oldData, updatedData, timestamp) {
     const editHistory = [];
 
     for (const key in updatedData) {
-        if (oldData[key] !== updatedData[key]) {
+        if (key !== 'id' && oldData[key] !== updatedData[key]) {
+            let formattedNewValue = oldData[key];
+
+            // Check if the current key is the one representing the date field
+            if (key === 'AccountLastPayment') {
+                // Parse the new date value into a Date object  
+                const newDate = new Date(formattedNewValue);
+                // Format the date as 'YYYY-MM-DD'
+                formattedNewValue = formatDate(newDate);
+            }
+
             editHistory.push({
                 edited_field: key,       // Set edited_field to the field name
-                old_value: oldData[key],
+                old_value: formattedNewValue,
                 new_value: updatedData[key], // Set new_value to the new value
                 timestamp: timestamp
             });
@@ -254,29 +219,27 @@ function getEditHistory(oldData, updatedData, timestamp) {
     return editHistory;
 }
 
-app.get('/editHistory', (req, res) => {
-    // Fetch edit history entries from the database
-    const sql = "SELECT edited_table, edited_field, new_value, timestamp FROM edit_history";
+app.get('/editHistory', async (req, res) => {
+    try {
+        const result = await con.query`SELECT edited_table, edited_field, new_value, timestamp FROM edit_history`;
 
-
-    con.query(sql, (err, result) => {
-        if (err) {
-            console.error("Error fetching edit history:", err);
-            return res.status(500).json({ Error: "Error fetching edit history" });
-        }
-
-        return res.json({ Status: "Success", EditHistory: result });
-    });
+        return res.json({ Status: 'Success', EditHistory: result.recordset });
+    } catch (err) {
+        console.error('Error fetching edit history:', err);
+        return res.status(500).json({ Error: 'Error fetching edit history' });
+    }
 });
 
-app.delete('/delete/:id', (req, res) => {
+app.delete('/delete/:id', async (req, res) => {
     const id = req.params.id;
-    const sql = "Delete FROM combined_data WHERE id = ?";
-    con.query(sql, [id], (err, result) => {
-        if (err) return res.json({ Error: "delete customer error in sql" });
-        return res.json({ Status: "Success" })
-    })
-})
+    try {
+        const result = await con.query`DELETE FROM combined_data WHERE id = ${id}`;
+        return res.json({ Status: 'Success' });
+    } catch (err) {
+        console.error('Error in running delete query:', err);
+        return res.json({ Status: 'Error', Error: 'Error in running delete query' });
+    }
+});
 
 const verifyUser = (req, res, next) => {
     const token = req.cookies.token;
@@ -300,44 +263,30 @@ app.get('/userDashboard', verifyUser, (req, res) => {
 })
 
 app.get('/adminCount', (req, res) => {
-    const query = 'SELECT COUNT(*) AS admin FROM admin';
-    con.query(query, (err, results) => {
-      if (err) {
-        console.error('Error executing the query:', err);
-        res.status(500).json({ error: 'Error retrieving admin count' });
-      } else {
-        const adminCount = results.recordset[0].admin;
-        res.json([{ admin: adminCount }]);
-      }
-    });
-  });
-
-  app.get('/customerCount', (req, res) => {
-    const sqlQuery = "SELECT COUNT(*) AS users FROM combined_data";
-  
-    con.query(sqlQuery, (err, results) => {
-      if (err) {
-        console.error('Error running query:', err);
-        res.status(500).json({ Error: "Error in running query" });
-      } else {
-        const customerCount = results.recordset[0].users;
-        res.json([{ users: customerCount }]);
-      }
-    });
-  });
+    const sql = "Select count(id) as admin from admin";
+    con.query(sql, (err, result) => {
+        if (err) return res.json({ Error: "Error in runnig query" });
+        return res.json(result);
+    })
+})
+app.get('/customerCount', (req, res) => {
+    const sql = "Select count(id) as users from combined_data";
+    con.query(sql, (err, result) => {
+        if (err) return res.json({ Error: "Error in runnig query" });
+        return res.json(result);
+    })
+})
 
 app.get('/logout', (req, res) => {
     res.clearCookie('token');
     return res.json({ Status: "Success" });
 })
 
-app.post('/add', (req, res) => {
 
+app.post('/add', async (req, res) => {
     const {
-        ID,
         name,
         email,
-        service_type,
         device_payment_plan,
         credit_card,
         credit_card_type,
@@ -347,131 +296,165 @@ app.post('/add', (req, res) => {
         postal_code
     } = req.body;
 
-    const sql = `
-        INSERT INTO combined_data (
-            ID,
-            name,
-            email,
-            service_type,
-            device_payment_plan,
-            credit_card,
-            credit_card_type,
-            account_last_payment_date,
-            address,
-            state,
-            postal_code
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
-    con.query(
-        sql,
-        [
-            ID,
-            name,
-            email,
-            service_type,
-            device_payment_plan,
-            credit_card,
-            credit_card_type,
-            account_last_payment_date,
-            address,
-            state,
-            postal_code
-        ],
-        (err, result) => {
-            if (err) {
-                console.error("Error in running query:", err);
-                return res.json({ Status: 'Error', Error: 'Error in running query' });
-            } else {
-                return res.json({ Status: 'Success' });
-            }
-        }
-    );
+    try {
+        const result = await con.query`
+            INSERT INTO combined_data (
+                ID,
+                name,
+                email,
+                device_payment_plan,
+                credit_card,
+                credit_card_type,
+                account_last_payment_date,
+                address,
+                state,
+                postal_code
+            ) VALUES (NEWID(), ${name}, ${email}, ${device_payment_plan}, ${credit_card}, ${credit_card_type}, ${account_last_payment_date}, ${address}, ${state}, ${postal_code})`;
+        
+        return res.json({ Status: 'Success' });
+    } catch (err) {
+        console.error('Error in running query:', err);
+        return res.json({ Status: 'Error', Error: 'Error in running query' });
+    }
 });
 
-app.get('/getUser', (req, res) => {
-    const sql = "SELECT id, email, role FROM users"
-    con.query(sql, (err, result) => {
-        if (err) return res.json({ Error: "Get customer error in sql" })
-        return res.json({ Status: "Success", Result: result })
-    })
-})
+// Changes not done *****************************************************************
 
-app.get('/getAdvanceUser', (req, res) => {
-    const sql = "SELECT id, email, role FROM advance_user"
-    con.query(sql, (err, result) => {
-        if (err) return res.json({ Error: "Get customer error in sql" })
-        return res.json({ Status: "Success", Result: result })
-    })
-})
+app.post('/advanceLogin', async(req, res) => {
+    try {
+        const query = `Select * FROM advance_user WHERE email = @email`;
+        const request = con.request().input('email', sql.VarChar, req.body.email);
+        const result = await request.query(query);
 
-app.post('/demoteUser/:id', (req, res) => {
-    const id = req.params.id;
-    const checkAdvanceUserQuery = "SELECT * FROM advance_user WHERE id = ?";
-    con.query(checkAdvanceUserQuery, [id], (err, result) => {
-      if (err) {
-        return res.json({ Error: "Database error while checking the user's role." });
-      }
-      if (result.length === 0) {
-        return res.json({ Error: "User not found or not an advance user." });
-      }
-  
-      const userToDemote = result[0];
-  
-      // Update user's role and move password
-      const insertUserQuery = "INSERT INTO users (email, role, password) VALUES (?, ?, ?)";
-      con.query(insertUserQuery, [userToDemote.email, 'user', userToDemote.password], (err, result) => {
-        if (err) {
-          return res.json({ Error: "Demotion failed." });
+        if(result.recordset.length > 0) {
+            const user = result.recordset[0];
+
+            if(await bcrypt.compare(req.body.password, user.password)) {
+                const id = user.id;
+                const token = jwt.sign({role: "admin", id }, "jwt-secret-key", {expiresIn: '1d' });
+                res.cookie('token', token);
+                return res.json({Status: "Success" });
+            } else {
+                return res.json({Status: "Error", Error: "Wrong Email or Password" });
+            }
+        } else {
+          return res.json({ Status: "Error", Error: "User not found" });
         }
-  
-        const deleteAdvanceUserQuery = "DELETE FROM advance_user WHERE id = ?";
-        con.query(deleteAdvanceUserQuery, [id], (err, result) => {
-          if (err) {
-            return res.json({ Error: "Demotion failed." });
-          }
-  
-          return res.json({ Status: "Success", Message: "User demoted successfully." });
-        });
-      });
+      } catch (err) {
+        console.error("Error in running query:", err);
+        return res.json({ Status: "Error", Error: "Error in running query" });
+      }
     });
-  });
-  
-  app.post('/promoteUser/:id', (req, res) => {
-    const id = req.params.id;
-  
-    const checkRegularUserQuery = "SELECT * FROM users WHERE id = ?";
-    con.query(checkRegularUserQuery, [id], (err, result) => {
-      if (err) {
-        return res.json({ Error: "Database error while checking the user's role." });
-      }
-      if (result.length === 0) {
-        return res.json({ Error: "User not found or not a regular user." });
-      }
-  
-      const userToPromote = result[0];
-  
-      // Update user's role and move password
-      const insertAdvanceUserQuery = "INSERT INTO advance_user (email, role, password) VALUES (?, ?, ?)";
-      con.query(insertAdvanceUserQuery, [userToPromote.email, 'advance_user', userToPromote.password], (err, result) => {
-        if (err) {
-          return res.json({ Error: "Promotion failed." });
+
+    app.get('/getUser', async (req, res) => {
+        try {
+            const result = await con.request().query('SELECT id, email, role FROM users');
+            
+            return res.json({ Status: "Success", Result: result.recordset });
+        } catch (err) {
+            console.error("Get customer error in SQL:", err);
+            return res.status(500).json({ Error: "Get customer error in SQL" });
         }
-  
-        const deleteRegularUserQuery = "DELETE FROM users WHERE id = ?";
-        con.query(deleteRegularUserQuery, [id], (err, result) => {
-          if (err) {
-            return res.json({ Error: "Promotion failed." });
-          }
-  
-          return res.json({ Status: "Success", Message: "User promoted to advance user successfully." });
-        });
-      });
     });
-  });
-  
-  
-  
-const PORT = process.env.PORT || 8081
-app.listen(PORT, () => {
+
+    app.get('/getAdvanceUser', async (req, res) => {
+        try {
+            const result = await con.request().query('SELECT id, email, role FROM advance_user');
+            
+            return res.json({ Status: "Success", Result: result.recordset });
+        } catch (err) {
+            console.error("Get advance user error in SQL:", err);
+            return res.status(500).json({ Error: "Get advance user error in SQL" });
+        }
+    });
+
+app.post('/demoteUser/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const checkAdvanceUserQuery = 'SELECT * FROM advance_user WHERE id = @id'
+        const checkAdvanceUserResult = await con.request().input('id', sql.Int, id).query(checkAdvanceUserQuery);
+
+        
+        if (checkAdvanceUserResult.recordset.length === 0) {
+            return res.json({ Error: "Advance User not found." });
+        }
+
+        const userToDemote = checkAdvanceUserResult.recordset[0];
+
+        // Update user's role and move password
+        const insertUserQuery = "INSERT INTO users (email, role, password) VALUES (@email, 'user', @password)";
+        await con.request()
+        .input('email', sql.VarChar(30), userToDemote.email)
+        .input('password', sql.NVarChar(50), userToDemote.password)
+        .query(insertUserQuery);
+
+        // Delete advance_user that was moved
+        const deleteAdvanceUserQuery = "DELETE FROM advance_user WHERE id = @id"
+        await con.result()
+        .input('id', sql.Int, id)
+        .query(deleteAdvanceUserQuery);
+
+        return res.json({ Status: "Success", Message: "User demoted successfully." });
+    } catch (err) {
+        console.error("Demotion failed:", err);
+        return res.status(500).json({ Error: "Demotion failed." });
+    }
+});
+
+app.post('/promoteUser/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+
+        // Get the user from the 'user' table
+        const checkRegularUserQuery = "SELECT * FROM users WHERE id = @id";
+        const checkRegularUserResult = await con.result()
+        .input('id', sql.Int, id)
+        .query(checkRegularUserQuery);
+
+        if (checkRegularUserResult.recordset.length === 0) {
+            return res.json({ Error: "User not found or not a regular user." });
+        }
+
+        // Promote user to 'advance_user' table
+        const userToPromote = checkRegularUserResult.recordset[0];
+        const insertAdvanceUserQuery = "INSERT INTO advance_user (email, role, password) VALUES (@email, 'advance_user', @password)";
+        const insertAdvanceUserResult = await con.result()
+        .input('email', sql.VarChar(30), userToPromote.email)
+        .input('password', sql.NVarChar(50), userToPromote.password)
+        .query(insertAdvanceUserQuery);
+
+        // Delete user from the 'users' table
+        const deleteRegularUserQuery = "DELETE FROM users WHERE id = @id";
+        await con.request()
+        .input('id', sql.Int, id)
+        .query(deleteRegularUserQuery);
+    
+        return res.json({ Status: "Success", Message: "User promoted to advance user successfully." });
+    } catch (err) {
+        console.error("Promotion failed:", err);
+        return res.status(500).json({ Error: "Promotion failed." });
+    }
+});
+
+app.post('/createUser', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        hashedPassword = await bcrypt.hash(password, 10);
+        const createUserQuery = "INSERT INTO users (email, role, password) VALUES (@email, 'user', @password)";
+        const result = con.result()
+        .input('email', sql.VarChar(30), email)
+        .input('password', sql.NVarChar(50), hashedPassword)
+        .query(createUserQuery);
+
+        res.json({ Status: 'Success', Message: 'User created successfully' });
+    } catch (err) {
+        console.error('Error creating user:', err);
+        res.status(500).json({ Status: 'Error', Error: 'Error creating user' });
+    } finally {
+        await sql.close();
+    }
+});
+
+app.listen(8081, () => {
     console.log("Running")
 })
