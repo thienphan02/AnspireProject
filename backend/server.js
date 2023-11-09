@@ -262,20 +262,29 @@ app.get('/userDashboard', verifyUser, (req, res) => {
     return res.json({ Status: "Success", role: req.role, id: req.id })
 })
 
-app.get('/adminCount', (req, res) => {
-    const sql = "Select count(id) as admin from admin";
-    con.query(sql, (err, result) => {
-        if (err) return res.json({ Error: "Error in runnig query" });
-        return res.json(result);
-    })
-})
-app.get('/customerCount', (req, res) => {
-    const sql = "Select count(id) as users from combined_data";
-    con.query(sql, (err, result) => {
-        if (err) return res.json({ Error: "Error in runnig query" });
-        return res.json(result);
-    })
-})
+app.get('/adminCount', async (req, res) => {
+    try {
+        const query = 'SELECT COUNT(id) AS admin FROM admin';
+        const result = await con.query(query);
+
+        res.json(result.recordset[0]);
+    } catch (err) {
+        console.error('Error running query:', err);
+        res.status(500).json({ Error: 'Error in running query' });
+    }
+});
+
+app.get('/customerCount', async (req, res) => {
+    try {
+        const query = "Select count(id) as users from combined_data";
+        const result = await con.query(query);
+
+        res.json(result.recordset[0]);
+    } catch (err) {
+        console.error('Error running query:', err);
+        res.status(500).json({ Error: 'Error in running query' });
+    }
+});
 
 app.get('/logout', (req, res) => {
     res.clearCookie('token');
@@ -385,12 +394,12 @@ app.post('/demoteUser/:id', async (req, res) => {
         const insertUserQuery = "INSERT INTO users (email, role, password) VALUES (@email, 'user', @password)";
         await con.request()
         .input('email', sql.VarChar(30), userToDemote.email)
-        .input('password', sql.NVarChar(50), userToDemote.password)
+        .input('password', sql.NVarChar(60), userToDemote.password)
         .query(insertUserQuery);
 
         // Delete advance_user that was moved
         const deleteAdvanceUserQuery = "DELETE FROM advance_user WHERE id = @id"
-        await con.result()
+        await con.request()
         .input('id', sql.Int, id)
         .query(deleteAdvanceUserQuery);
 
@@ -407,7 +416,7 @@ app.post('/promoteUser/:id', async (req, res) => {
 
         // Get the user from the 'user' table
         const checkRegularUserQuery = "SELECT * FROM users WHERE id = @id";
-        const checkRegularUserResult = await con.result()
+        const checkRegularUserResult = await con.request()
         .input('id', sql.Int, id)
         .query(checkRegularUserQuery);
 
@@ -417,10 +426,11 @@ app.post('/promoteUser/:id', async (req, res) => {
 
         // Promote user to 'advance_user' table
         const userToPromote = checkRegularUserResult.recordset[0];
+        console.log("Password being inserted: ", userToPromote.password, " Length: ", userToPromote.password.length);
         const insertAdvanceUserQuery = "INSERT INTO advance_user (email, role, password) VALUES (@email, 'advance_user', @password)";
-        const insertAdvanceUserResult = await con.result()
+        const insertAdvanceUserResult = await con.request()
         .input('email', sql.VarChar(30), userToPromote.email)
-        .input('password', sql.NVarChar(50), userToPromote.password)
+        .input('password', sql.NVarChar(60), userToPromote.password)
         .query(insertAdvanceUserQuery);
 
         // Delete user from the 'users' table
@@ -441,7 +451,7 @@ app.post('/createUser', async (req, res) => {
         const { email, password } = req.body;
         hashedPassword = await bcrypt.hash(password, 10);
         const createUserQuery = "INSERT INTO users (email, role, password) VALUES (@email, 'user', @password)";
-        const result = con.result()
+        const result = con.request()
         .input('email', sql.VarChar(30), email)
         .input('password', sql.NVarChar(50), hashedPassword)
         .query(createUserQuery);
