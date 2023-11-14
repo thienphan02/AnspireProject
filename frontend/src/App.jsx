@@ -13,6 +13,7 @@ import UserDashboard from './UserDashboard'
 import AdvanceUser from './AdvanceUser'
 import AdvanceDetail from './AdvanceDetail'
 import AdvanceLogin from './AdvanceLogin'
+import CreateUser from './CreateUser'
 
 function App() {
 
@@ -35,6 +36,7 @@ function App() {
         <Route path="start" element={<Start />} />
         <Route path="customerLogin" element={<CustomerLogin />} />
         <Route path="advanceLogin" element={<AdvanceLogin />} />
+        <Route path="createUser" element={<CreateUser />} />
         <Route path='/' element={<UserDashboard />}>
           <Route path="customerDetail/:id" element={<CustomerDetail />} />
           <Route path="advanceDetail/:id" element={<AdvanceDetail />} />
