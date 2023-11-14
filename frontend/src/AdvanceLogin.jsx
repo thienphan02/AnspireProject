@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 
-function CustomerLogin() {
+function AdvanceLogin() {
 
     const [values, setValues] = useState({
         email: '',
@@ -54,4 +54,4 @@ function CustomerLogin() {
     )
 }
 
-export default CustomerLogin
+export default AdvanceLogin

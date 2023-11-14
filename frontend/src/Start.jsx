@@ -30,9 +30,11 @@ function Start() {
             Admin
           </button>
         </div>
-       
+        <div className='mt-3'>
+                    Don't have an account? 
+            <Link to='/createUser'>Register here</Link>
+        </div>
       </div>
-      
     </div>
   );
 }
