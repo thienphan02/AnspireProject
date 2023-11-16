@@ -15,10 +15,10 @@ function CreateUser() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    axios.post('http://localhost:8081/createUser')
+    axios.post('http://localhost:8081/createUser', values)
       .then((res) => {
         if (res.data.Status === 'Success') {
-          navigate('/login');
+          navigate('/');
         } else {
           setError(res.data.Error);
         }
@@ -40,7 +40,7 @@ function CreateUser() {
               type='email'
               placeholder='Enter Email'
               name='email'
-              onChange={(e) => setValues({ email: e.target.value })}
+              onChange={e => setValues({...values, email: e.target.value})}
               className='form-control rounded-0'
               autoComplete='off'
             />
@@ -51,7 +51,7 @@ function CreateUser() {
               type='password'
               placeholder='Enter Password'
               name='password'
-              onChange={(e) => setValues({ password: e.target.value })}
+              onChange={e => setValues({...values, password: e.target.value})} 
               className='form-control rounded-0'
             />
           </div>

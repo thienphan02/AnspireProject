@@ -3,7 +3,6 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-//import dbConnection from './config/dbConfig.js' // Via this import, it sets up the connection, not using this currently, might not need to.
 
 const app = express();
 app.use(cors({
@@ -327,8 +326,6 @@ app.post('/add', async (req, res) => {
     }
 });
 
-// Changes not done *****************************************************************
-
 app.post('/advanceLogin', async(req, res) => {
     try {
         const query = `Select * FROM advance_user WHERE email = @email`;
@@ -426,7 +423,6 @@ app.post('/promoteUser/:id', async (req, res) => {
 
         // Promote user to 'advance_user' table
         const userToPromote = checkRegularUserResult.recordset[0];
-        console.log("Password being inserted: ", userToPromote.password, " Length: ", userToPromote.password.length);
         const insertAdvanceUserQuery = "INSERT INTO advance_user (email, role, password) VALUES (@email, 'advance_user', @password)";
         const insertAdvanceUserResult = await con.request()
         .input('email', sql.VarChar(30), userToPromote.email)
@@ -447,21 +443,25 @@ app.post('/promoteUser/:id', async (req, res) => {
 });
 
 app.post('/createUser', async (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
     try {
-        const { email, password } = req.body;
-        hashedPassword = await bcrypt.hash(password, 10);
+
+        console.log("email", email);
+        console.log("password ", password);
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log("hashed password");
         const createUserQuery = "INSERT INTO users (email, role, password) VALUES (@email, 'user', @password)";
-        const result = con.request()
+        const result = await con.request()
         .input('email', sql.VarChar(30), email)
-        .input('password', sql.NVarChar(50), hashedPassword)
+        .input('password', sql.NVarChar(60), hashedPassword)
         .query(createUserQuery);
 
         res.json({ Status: 'Success', Message: 'User created successfully' });
     } catch (err) {
         console.error('Error creating user:', err);
         res.status(500).json({ Status: 'Error', Error: 'Error creating user' });
-    } finally {
-        await sql.close();
     }
 });
 

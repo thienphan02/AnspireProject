@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function AdvanceUser() {
   
   const [users, setUsers] = useState([]);
   const [advanceUsers, setAdvanceUser] = useState([])
-  const location = useLocation()
+  const location = useNavigate()
 
   useEffect(() => {
     // Fetch the list of advance users from the server
@@ -41,7 +41,7 @@ function AdvanceUser() {
         console.log("PromoteUser response:", res.data);
         
         if (res.data.Status === 'Success') {
-          location.replace(location);
+          window.location.reload();
         } else {
           alert('Error promoting user');
         }
@@ -55,7 +55,7 @@ function AdvanceUser() {
       .then((res) => {
         console.log("DemoteUser response:", res.data);
         if (res.data.Status === 'Success') {
-          location.replace(location);
+          window.location.reload();
         } else {
           alert('Error demoting user');
         }
