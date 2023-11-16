@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './style.css';
 
 function Start() {
@@ -32,7 +32,7 @@ function Start() {
         </div>
         <div className='mt-3'>
                     Don't have an account? 
-            <Link to='/createUser'>Register here</Link>
+            <Link to="/createUser"> Register here</Link>
         </div>
       </div>
     </div>
