@@ -45,11 +45,6 @@ function AddCustomer() {
 		<div className='d-flex flex-column align-items-center pt-4'>
 			<h2>Add Customer</h2>
 			<form className ="row g-3 w-50" onSubmit={handleSubmit}>
-            <div className ="col-12">
-					<label htmlFor="inputID" className ="form-label">ID</label>
-					<input type="text" className ="form-control" id="inputID" placeholder='Enter ID' autoComplete='off'
-					onChange={e => setData({...data, ID: e.target.value})}/>
-				</div>
 			<div className ="col-12">
 					<label htmlFor="inputName" className ="form-label">Name</label>
 					<input type="text" className ="form-control" id="inputName" placeholder='Enter Name' autoComplete='off'

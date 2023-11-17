@@ -14,6 +14,7 @@ import AdvanceUser from './AdvanceUser'
 import AdvanceDetail from './AdvanceDetail'
 import AdvanceLogin from './AdvanceLogin'
 import CreateUser from './CreateUser'
+import CSVUploadComponent from './CSVUploadComponent';
 
 function App() {
 
@@ -40,6 +41,7 @@ function App() {
         <Route path='/' element={<UserDashboard />}>
           <Route path="customerDetail/:id" element={<CustomerDetail />} />
           <Route path="advanceDetail/:id" element={<AdvanceDetail />} />
+          <Route path="/CSVUploadComponent" element={<CSVUploadComponent />} />
         </Route>
     </Routes>
    </BrowserRouter>

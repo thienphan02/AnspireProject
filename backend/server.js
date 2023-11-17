@@ -275,7 +275,7 @@ app.get('/adminCount', async (req, res) => {
 
 app.get('/customerCount', async (req, res) => {
     try {
-        const query = "Select count(id) as users from combined_data";
+        const query = "Select COUNT(ID) as users from combined_data";
         const result = await con.query(query);
 
         res.json(result.recordset[0]);
@@ -464,6 +464,61 @@ app.post('/createUser', async (req, res) => {
         res.status(500).json({ Status: 'Error', Error: 'Error creating user' });
     }
 });
+
+app.post('/filteredSearch', async (req, res) => {
+    let {
+        ID, 
+        name,
+        email,
+        device_payment_plan,
+        credit_card,
+        credit_card_type,
+        account_last_payment_date,
+        address,
+        state,
+        postal_code
+    } = req.body;
+    try {
+        const query = `SELECT * FROM combined_data 
+        WHERE ID like @ID and name like @name and email like @email 
+        and device_payment_plan like @device_payment_plan and credit_card like @credit_card 
+        and credit_card_type like @credit_card_type 
+        and account_last_payment_date >= @account_last_payment_range
+        and address like @address and state like @state and postal_code like @postal_code`;
+        ID = '%' + ID + '%'; // Create one for each parameter so that it searches for contains, not exact match.
+        name = '%' + name + '%';
+        email = '%' + email + '%';
+        device_payment_plan = '%' + device_payment_plan + '%';
+        credit_card = '%' + credit_card + '%';
+        credit_card_type = '%' + credit_card_type + '%';
+        
+        // Handle the date to make it a valid type
+        let account_last_payment_date_range = '0001-01-01'; // Sets default value of low date
+        if(account_last_payment_date) { // Checks if it is null or not (if null, set as lowest date)
+            account_last_payment_date_range = account_last_payment_date;
+        }
+
+        address = '%' + address + '%';
+        state = '%' + state + '%';
+        postal_code = '%' + address + '%';
+        const result = await con.request()
+        .input('ID', sql.NVarChar(50), ID)
+        .input('name', sql.NVarChar, name)
+        .input('email', sql.VarChar(100), email)
+        .input('device_payment_plan', sql.NVarChar, device_payment_plan)
+        .input('credit_card', sql.NVarChar, credit_card)
+        .input('credit_card_type', sql.NVarChar, credit_card_type)
+        .input('account_last_payment_range', account_last_payment_date_range)
+        .input('address', sql.NVarChar, address)
+        .input('state', sql.NVarChar, state)
+        .input('postal_code', sql.NVarChar, postal_code)
+        .query(query);
+        res.json({ Status: 'Success', Message: 'Sorting done successfully' });
+    } catch (err) {
+        console.error('Error Sorting:', err);
+        res.status(500).json({ Status: 'Error', Error: 'Error Sorting' });
+    }
+})
 
 app.listen(8081, () => {
     console.log("Running")

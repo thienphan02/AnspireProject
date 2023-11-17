@@ -2,11 +2,28 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import './style.css'
+import FilterOverlay from './FilterOverlay.jsx'
+import CSVUploadComponent from './CSVUploadComponent'
 
 function Customer({ isDarkMode }) {
     const [data, setData] = useState([])
+    const [showOverlay, setShowOverlay] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
-
+    const [sortBy, setSortBy] = useState(null);
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [selectedColumn, setSelectedColumn] = useState('');
+    const [searchValues, setSearchValues] = useState({
+        ID: '',
+        name: '',
+        email: '',
+        device_payment_plan: '',
+        credit_card: '',
+        credit_card_type: '',
+        account_last_payment_date: '',
+        address: '',
+        state: '',
+        postal_code: '',
+      });  
     useEffect(() => {
         axios.get('http://localhost:8081/getCustomer')
             .then(res => {
@@ -19,6 +36,32 @@ function Customer({ isDarkMode }) {
             })
             .catch(err => console.log(err));
     }, [])
+
+    const toggleOverlay = () => {
+        setShowOverlay(!showOverlay);
+      };
+
+    const handleSearchChange = (column, value) => {
+        setSearchValues((prevValues) => ({
+            ...prevValues,
+            [column]: value,
+        }));
+    };
+
+    // Handles the sorting when clicking on the column
+    const handleClick = (column) => {
+        if(sortBy === column) { // Clicking on same column, change from asc to desc
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(column);
+            setSortOrder('asc');
+        }
+
+    }
+
+    const handleColumnSelect = (column) => {
+        setSelectedColumn(column);
+      };
 
     const handleDelete = (id) => {
         axios.delete('http://localhost:8081/delete/' + id)
@@ -48,6 +91,16 @@ function Customer({ isDarkMode }) {
                 customer.postal_code.toLowerCase().includes(term)
             );
         });
+    })
+    .sort((a, b) => {
+      const aValue = a[sortBy] ?? '';
+      const bValue = b[sortBy] ?? '';
+
+      if (sortOrder === 'asc') {
+        return aValue.localeCompare(bValue);
+      } else {
+        return bValue.localeCompare(aValue);
+      }
     });
 
     const generateCSV = (data) => {
@@ -76,9 +129,38 @@ function Customer({ isDarkMode }) {
         return `${year}-${month}-${day}`;
     };
 
+    const handleFilterSubmit = (inputValues) => {
+        console.log("Submitted: ", inputValues)
+        axios.post('http://localhost:8081/filteredSearch', inputValues)
+        .then(res => {
+            if (res.data.Status === "Success") {
+                window.location.reload(true);
+            } else {
+                alert("Error")
+            }
+        })
+        .catch(err => console.log(err));
+    }
 
     return (
         <div className="px-5">
+
+             {/* Button to toggle the overlay */}
+      <button onClick={toggleOverlay}>Open Overlay</button>
+
+{/* Overlay component */}
+{showOverlay && <FilterOverlay onClose={toggleOverlay} onFilterSubmit={handleFilterSubmit}/>}
+
+      {selectedColumn && (
+        <div>
+          <label>{selectedColumn}:</label>
+          <input
+            type="text"
+            value={searchValues[selectedColumn]}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
+        </div>
+      )}
             <div className='search__container'>
                 <div className='search__title'>
                     <input
@@ -92,27 +174,29 @@ function Customer({ isDarkMode }) {
 
                 <div className="d-flex justify-content-between">
                     <Link to="/add" className='button-28 mb-3 mt-3'>Add Customer</Link>
+                    <Link to="/CSVUploadComponent" className='button-29 mb-3 mt-3'>Upload CSV</Link>
                     <button className='button-29 mb-3 mt-3' onClick={exportCSV}>
                         Export CSV
                     </button>
                 </div>
             </div>
+
             <div className="table-responsive">
             
             <table className={`table table-striped table-bordered table-hover ${isDarkMode ? 'table-dark' : 'table-light'}`}>
                   
                     <thead className="table-dark">
                         <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Device Payment Plan</th>
-                            <th>Credit Card Number</th>
-                            <th>Credit Card Type</th>
-                            <th>Account Last Payment Date</th>
-                            <th>Address</th>
-                            <th>State</th>
-                            <th>Postal Code</th>
+                            <th onClick={() => handleClick('ID')}>ID</th>
+                            <th onClick={() => handleClick('name')}>Name</th>
+                            <th onClick={() => handleClick('email')}>Email</th>
+                            <th onClick={() => handleClick('device_payment_plan')}>Device Payment Plan</th>
+                            <th onClick={() => handleClick('credit_card')}>Credit Card Number</th>
+                            <th onClick={() => handleClick('credit_card_type')}>Credit Card Type</th>
+                            <th onClick={() => handleClick('account_last_payment_date')}>Account Last Payment Date</th>
+                            <th onClick={() => handleClick('address')}>Address</th>
+                            <th onClick={() => handleClick('state')}>State</th>
+                            <th onClick={() => handleClick('postal_code')}>Postal Code</th>
                             <th className="Actions">Actions</th>
                         </tr>
                     </thead>
