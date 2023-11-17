@@ -146,7 +146,7 @@ function Customer({ isDarkMode }) {
         <div className="px-5">
 
              {/* Button to toggle the overlay */}
-      <button onClick={toggleOverlay}>Filter</button>
+      <button onClick={toggleOverlay}>Filters</button>
 
 {/* Overlay component */}
 {showOverlay && <FilterOverlay onClose={toggleOverlay} onFilterSubmit={handleFilterSubmit}/>}
