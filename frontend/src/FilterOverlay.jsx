@@ -30,9 +30,9 @@ const FilterOverlay = ({ onClose, onFilterSubmit }) => {
       };
   return (
 
-    <div className="overlay">
+    <div className="filter-overlay">
       {/* Overlay content */}
-      <div className="overlay-content">
+      <div className="filter-content">
         <h2>Filter</h2>
         <label>ID: <input type="text" name="ID" value={inputValues.ID} onChange={handleInputChange} /></label>
         <label>Name: <input type="text" name="name" value={inputValues.name} onChange={handleInputChange} /></label>
@@ -44,7 +44,7 @@ const FilterOverlay = ({ onClose, onFilterSubmit }) => {
         <label>Address: <input type="text" name="address" value={inputValues.address} onChange={handleInputChange} /></label>
         <label>State: <input type="text" name="state" value={inputValues.state} onChange={handleInputChange} /></label>
         <label>Postal Code: <input type="text" name="postal_code" value={inputValues.postal_code} onChange={handleInputChange} /></label>
-        <button onClick={handleFilterSubmit}>Search</button>
+        <button className="search-box" onClick={handleFilterSubmit}>Search</button>
       </div>
     </div>
 

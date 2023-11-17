@@ -401,26 +401,37 @@
   animation: buttonPulse 2s ease infinite reverse;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  position: relative;
+.filter-overlay {
+  position: fixed;
+  top: 0;
+  left: 35%;
+  width: 30%; /* Cover the entire viewport horizontally */
+  height: 80%; /* Cover the entire viewport vertically */
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.centered-box { /* I would really love to fix this so that it is like a box in the center of the screen */
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 9999; /* Set a value higher than other elements */
-  width: 300px; /* Adjust the width of the box */
-  padding: 20px;
-  background-color: white;
-  border: 1px solid #ccc;
+.filter-content {
+  padding: 30px;
+  background-color: black;
+  color: white;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+}
+
+.search-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .form-item {
   margin-bottom: 15px;
+}
+
+.filter-button {
+  background: #d06ee3; /* purple background color */
+  animation: buttonPulse 2s ease infinite;
 }

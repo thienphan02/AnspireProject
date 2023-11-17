@@ -491,7 +491,7 @@ app.post('/filteredSearch', async (req, res) => {
         device_payment_plan = '%' + device_payment_plan + '%';
         credit_card = '%' + credit_card + '%';
         credit_card_type = '%' + credit_card_type + '%';
-        
+
         // Handle the date to make it a valid type
         let account_last_payment_date_range = '0001-01-01'; // Sets default value of low date
         if(account_last_payment_date) { // Checks if it is null or not (if null, set as lowest date)
@@ -513,7 +513,7 @@ app.post('/filteredSearch', async (req, res) => {
         .input('state', sql.NVarChar, state)
         .input('postal_code', sql.NVarChar, postal_code)
         .query(query);
-        res.json({ Status: 'Success', Message: 'Sorting done successfully' });
+        return res.json({ Status: 'Success', Result: result.recordset });
     } catch (err) {
         console.error('Error Sorting:', err);
         res.status(500).json({ Status: 'Error', Error: 'Error Sorting' });

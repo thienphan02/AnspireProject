@@ -11,8 +11,7 @@ function Customer({ isDarkMode }) {
     const [searchQuery, setSearchQuery] = useState('')
     const [sortBy, setSortBy] = useState(null);
     const [sortOrder, setSortOrder] = useState('asc');
-    const [selectedColumn, setSelectedColumn] = useState('');
-    const [searchValues, setSearchValues] = useState({
+    const [callbackInfo, setCallbackInfo] = useState({
         ID: '',
         name: '',
         email: '',
@@ -41,13 +40,6 @@ function Customer({ isDarkMode }) {
         setShowOverlay(!showOverlay);
       };
 
-    const handleSearchChange = (column, value) => {
-        setSearchValues((prevValues) => ({
-            ...prevValues,
-            [column]: value,
-        }));
-    };
-
     // Handles the sorting when clicking on the column
     const handleClick = (column) => {
         if(sortBy === column) { // Clicking on same column, change from asc to desc
@@ -58,10 +50,6 @@ function Customer({ isDarkMode }) {
         }
 
     }
-
-    const handleColumnSelect = (column) => {
-        setSelectedColumn(column);
-      };
 
     const handleDelete = (id) => {
         axios.delete('http://localhost:8081/delete/' + id)
@@ -130,13 +118,13 @@ function Customer({ isDarkMode }) {
     };
 
     const handleFilterSubmit = (inputValues) => {
-        console.log("Submitted: ", inputValues)
         axios.post('http://localhost:8081/filteredSearch', inputValues)
         .then(res => {
             if (res.data.Status === "Success") {
-                window.location.reload(true);
+                console.log(res.data.Result)
+                setData(res.data.Result);
             } else {
-                alert("Error")
+                alert("Error in Filter")
             }
         })
         .catch(err => console.log(err));
@@ -146,21 +134,10 @@ function Customer({ isDarkMode }) {
         <div className="px-5">
 
              {/* Button to toggle the overlay */}
-      <button onClick={toggleOverlay}>Open Overlay</button>
+      <button className='button-28 mb-2 mt-3 filter-button' onClick={toggleOverlay}>Filters</button>
 
 {/* Overlay component */}
 {showOverlay && <FilterOverlay onClose={toggleOverlay} onFilterSubmit={handleFilterSubmit}/>}
-
-      {selectedColumn && (
-        <div>
-          <label>{selectedColumn}:</label>
-          <input
-            type="text"
-            value={searchValues[selectedColumn]}
-            onChange={(e) => handleSearchChange(e.target.value)}
-          />
-        </div>
-      )}
             <div className='search__container'>
                 <div className='search__title'>
                     <input
