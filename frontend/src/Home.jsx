@@ -15,6 +15,7 @@ function Home({isDarkMode}) {
         axios.get('http://localhost:8081/adminCount')
         .then(res => {
             if (res.data && res.data.admin) {
+                console.log(res.data); // Log the response to check its structure
                 setAdminCount(res.data.admin);
             } else {
                 console.error("Invalid data received from adminCount API");
@@ -25,6 +26,7 @@ function Home({isDarkMode}) {
         axios.get('http://localhost:8081/customerCount')
         .then(res => {
             if (res.data && res.data.users) {
+                console.log(res.data);
                 setCustomerCount(res.data.users);
             } else {
                 console.error("Invalid data received from customerCount API");
@@ -35,7 +37,7 @@ function Home({isDarkMode}) {
 
         axios.get('http://localhost:8081/editHistory')
             .then(res => {
-                console.log(res.data); // Log the response to check its structure
+                console.log(res.data); 
                 setEditHistory(res.data.EditHistory);
             })
             .catch(err => console.log(err));
