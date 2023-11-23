@@ -2,9 +2,10 @@ import React, { useState } from 'react'
 import './style.css'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { useUser } from './UserContext'
 
 function Login() {
-
+    const { setUserRole } = useUser();
     const [values, setValues] = useState({
         email: '',
         password:''
@@ -18,6 +19,8 @@ function Login() {
         axios.post('http://localhost:8081/login', values)
         .then(res => {
             if (res.data.Status === 'Success'){
+                setUserRole(res.data.Role); // Set permission to data.Role (from server side)
+                
                 navigate('/');
             } else {
                 setError(res.data.Error)
@@ -32,7 +35,7 @@ function Login() {
                 <div className='text-danger'>
                     {error && error}
                 </div>
-                <h2>Login</h2>
+                <h2>Login as Admin</h2>
                 <form onSubmit={handleSubmit}>
                     <div className='mb-3'>
                         <label htmlFor="email"><strong>Email</strong></label>

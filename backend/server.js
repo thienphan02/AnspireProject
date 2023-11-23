@@ -49,7 +49,7 @@ app.post('/login', async (req, res) => {
                 const id = admin.id;
                 const token = jwt.sign({ role: 'admin', id }, 'jwt-secret-key', { expiresIn: '1d' });
                 res.cookie('token', token);
-                return res.json({ Status: 'Success' });
+                return res.json({ Status: 'Success', Role: 'admin' }); // assign admin role
             } else {
                 return res.json({ Status: 'Error', Error: 'Wrong Email or Password' });
             }
@@ -75,7 +75,7 @@ app.post('/customerLogin', async (req, res) => {
           const id = user.id;
           const token = jwt.sign({ role: "admin", id }, "jwt-secret-key", { expiresIn: '1d' });
           res.cookie('token', token);
-          return res.json({ Status: "Success" });
+          return res.json({ Status: "Success", Role: 'user' });
         } else {
           return res.json({ Status: "Error", Error: "Wrong Email or Password" });
         }
@@ -90,7 +90,16 @@ app.post('/customerLogin', async (req, res) => {
 
   app.get('/getCustomer', async (req, res) => {
     try {
-        const result = await con.request().query('SELECT * FROM combined_data');
+        const query = `SELECT ID, name, email, address, state, postal_code, account_last_payment_date, device_payment_plan, credit_card, credit_card_type,
+        STUFF((
+            SELECT ',' + CAST(ServiceType AS VARCHAR(MAX)) FROM UserServices us
+            INNER JOIN Service s ON us.ServiceID = s.ServiceID WHERE us.UserID = cd.ID
+            FOR XML PATH(''), TYPE).value('.', 'VARCHAR(MAX)'), 1, 1, '') AS ServiceTypes
+    FROM combined_data cd
+    LEFT OUTER JOIN UserServices ON cd.ID = UserServices.UserID
+    Left Outer JOIN Service ON UserServices.ServiceID = Service.ServiceID
+    GROUP BY ID, name, email, address, state, postal_code, account_last_payment_date, device_payment_plan, credit_card, credit_card_type`
+        const result = await con.request().query(query);
         return res.json({ Status: 'Success', Result: result.recordset });
     } catch (err) {
         console.error('Error fetching customer data from the database:', err);
@@ -339,7 +348,7 @@ app.post('/advanceLogin', async(req, res) => {
                 const id = user.id;
                 const token = jwt.sign({role: "admin", id }, "jwt-secret-key", {expiresIn: '1d' });
                 res.cookie('token', token);
-                return res.json({Status: "Success" });
+                return res.json({Status: "Success", Role: 'advanceUser' });
             } else {
                 return res.json({Status: "Error", Error: "Wrong Email or Password" });
             }

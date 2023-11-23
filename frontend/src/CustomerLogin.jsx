@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { useUser } from './UserContext'
 
 function CustomerLogin() {
-
+    const { setUserRole } = useUser();
     const [values, setValues] = useState({
         email: '',
         password: ''
@@ -19,7 +20,8 @@ function CustomerLogin() {
         .then(res => {
             if(res.data.Status === 'Success') {
                 const id = res.data.id;
-                navigate('/home'); // formerly was navigate('/customerDetail/'+id);
+                setUserRole(res.data.Role); // Set permission to data.Role (from server side)
+                navigate('/');
             } else {
                 setError(res.data.Error);
             }
@@ -33,7 +35,7 @@ function CustomerLogin() {
                 <div className='text-danger'>
                     {error && error}
                 </div>
-                <h2>Login</h2>
+                <h2>Login as User</h2>
                 <form onSubmit={handleSubmit}>
                     <div className='mb-3'>
                         <label htmlFor="email"><strong>Email</strong></label>
