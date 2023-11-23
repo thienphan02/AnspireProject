@@ -69,7 +69,6 @@ function AdvanceUser() {
       <table className='table table-striped table-bordered table-hover'>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Email</th>
             <th>role</th>
             <th>Action</th>
@@ -78,7 +77,6 @@ function AdvanceUser() {
         <tbody>
           {advanceUsers.map((advanceUser) => (
             <tr key={advanceUser.id}>
-              <td>{advanceUser.id}</td>
               <td>{advanceUser.email}</td>
               <td>{advanceUser.role}</td>
               <td>
@@ -95,7 +93,6 @@ function AdvanceUser() {
       <table className='table table-striped table-bordered table-hover'>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Email</th>
             <th>role</th>
             <th>Action</th>
@@ -104,7 +101,6 @@ function AdvanceUser() {
         <tbody>
           {users.map((user) => (
             <tr key={user.id}>
-              <td>{user.id}</td>
               <td>{user.email}</td>
               <td>{user.role}</td>
               <td>

@@ -12,6 +12,7 @@ const FilterOverlay = ({ onClose, onFilterSubmit }) => {
         address: '',
         state: '',
         postal_code: '',
+        ServiceTypes: '',
       });
 
       const handleInputChange = (e) => {
@@ -44,6 +45,7 @@ const FilterOverlay = ({ onClose, onFilterSubmit }) => {
         <label>Address: <input type="text" name="address" value={inputValues.address} onChange={handleInputChange} /></label>
         <label>State: <input type="text" name="state" value={inputValues.state} onChange={handleInputChange} /></label>
         <label>Postal Code: <input type="text" name="postal_code" value={inputValues.postal_code} onChange={handleInputChange} /></label>
+        <label>Service Type: <input type="text" name="ServiceTypes" value={inputValues.ServiceTypes} onChange={handleInputChange} /></label>
         <button className="search-box" onClick={handleFilterSubmit}>Search</button>
       </div>
     </div>

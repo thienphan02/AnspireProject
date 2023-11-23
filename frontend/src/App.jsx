@@ -15,6 +15,7 @@ import AdvanceDetail from './AdvanceDetail'
 import AdvanceLogin from './AdvanceLogin'
 import CreateUser from './CreateUser'
 import CSVUploadComponent from './CSVUploadComponent';
+import { UserProvider } from './UserContext';
 
 function App() {
 
@@ -23,15 +24,17 @@ function App() {
     setIsDarkMode(!isDarkMode);
   };
   return (
+    <UserProvider>
    <BrowserRouter>
    <Routes>
-        <Route path="/" element={<Dashboard isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}>
+        <Route path="/" element={<UserDashboard isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}>
           <Route path='' element={<Home isDarkMode={isDarkMode}/>}/>
           <Route path='/home' element={<Home isDarkMode={isDarkMode}/>} />
           <Route path='/advanceUser' element={<AdvanceUser isDarkMode={isDarkMode}/>} />
           <Route path="/customer" element={<Customer isDarkMode={isDarkMode}/>} />
           <Route path="/add" element={<AddCustomer />} />
           <Route path="/editCustomer/:id" element={<EditCustomer />} />
+          <Route path="/CSVUploadComponent" element={<CSVUploadComponent />} />
         </Route>
         <Route path="login" element={<Login />} />
         <Route path="start" element={<Start />} />
@@ -41,10 +44,10 @@ function App() {
         <Route path='/' element={<UserDashboard />}>
           <Route path="customerDetail/:id" element={<CustomerDetail />} />
           <Route path="advanceDetail/:id" element={<AdvanceDetail />} />
-          <Route path="/CSVUploadComponent" element={<CSVUploadComponent />} />
         </Route>
     </Routes>
    </BrowserRouter>
+   </UserProvider>
   )
 }
 

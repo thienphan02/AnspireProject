@@ -1,10 +1,10 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import './style.css'
-
-
+import { useUser } from './UserContext.jsx'
 
 function Home({isDarkMode}) {
+    const { userRole } = useUser(); // Establish Permissions
     const [adminCount, setAdminCount] = useState()
     const [customerCount, setCustomerCount] = useState()
     const [editHistory, setEditHistory] = useState([])
@@ -50,15 +50,6 @@ function Home({isDarkMode}) {
             <div className='p-3 d-flex justify-content-around mt-3'>
                 <div className='px-3 pt-2 pb-3 border shadow-sm w-25'>
                     <div className='text-center pb-1'>
-                        <h4>Admin</h4>
-                    </div>
-                    <hr />
-                    <div className=''>
-                        <h5>Total: {adminCount}</h5>
-                    </div>
-                </div>
-                <div className='px-3 pt-2 pb-3 border shadow-sm w-25'>
-                    <div className='text-center pb-1'>
                         <h4>Customers</h4>
                     </div>
                     <hr />
@@ -68,7 +59,8 @@ function Home({isDarkMode}) {
                 </div>
             </div>
 
-
+            {userRole !== 'user' && (
+                <>
             <div className={`mt-4 px-5 pt-3 edit-history-container`}>
                 <h3>Edit History</h3>
                 <table className={`table table-striped table-bordered table-hover ${isDarkMode ? 'table-dark' : 'table-light'}`}>
@@ -93,6 +85,8 @@ function Home({isDarkMode}) {
                 </table>
 
             </div>
+            </>
+            )}
         </div>
     )
 }

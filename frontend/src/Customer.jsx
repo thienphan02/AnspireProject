@@ -1,28 +1,18 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import './style.css'
 import FilterOverlay from './FilterOverlay.jsx'
-import CSVUploadComponent from './CSVUploadComponent'
+import { useUser } from './UserContext.jsx'
 
 function Customer({ isDarkMode }) {
+    const { userRole } = useUser(); // Establish Permissions
+
     const [data, setData] = useState([])
     const [showOverlay, setShowOverlay] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [sortBy, setSortBy] = useState(null);
     const [sortOrder, setSortOrder] = useState('asc');
-    const [callbackInfo, setCallbackInfo] = useState({
-        ID: '',
-        name: '',
-        email: '',
-        device_payment_plan: '',
-        credit_card: '',
-        credit_card_type: '',
-        account_last_payment_date: '',
-        address: '',
-        state: '',
-        postal_code: '',
-      });  
     useEffect(() => {
         axios.get('http://localhost:8081/getCustomer')
             .then(res => {
@@ -67,16 +57,17 @@ function Customer({ isDarkMode }) {
         const searchString = searchQuery.toLowerCase().split(' ');
         return searchString.every((term) => {
             return (
-                customer.ID.toLowerCase().includes(term) ||
-                customer.name.toLowerCase().includes(term) ||
-                customer.email.toLowerCase().includes(term) ||
-                customer.device_payment_plan.toLowerCase().includes(term) ||
-                customer.credit_card.toLowerCase().includes(term) ||
-                customer.credit_card_type.toLowerCase().includes(term) ||
-                customer.account_last_payment_date.toLowerCase().includes(term) ||
-                customer.address.toLowerCase().includes(term) ||
-                customer.state.toLowerCase().includes(term) ||
-                customer.postal_code.toLowerCase().includes(term)
+                customer.ID.toLowerCase().includes(term) || // This value cant be null
+                (customer.name?.toLowerCase() ?? '').includes(term) || // If the value is null, it uses empty string
+                (customer.email?.toLowerCase() ?? '').includes(term) ||
+                (customer.device_payment_plan?.toLowerCase() ?? '').includes(term) ||
+                (customer.credit_card?.toLowerCase() ?? '').includes(term) ||
+                (customer.credit_card_type?.toLowerCase() ?? '').includes(term) ||
+                (customer.account_last_payment_date?.toLowerCase() ?? '').includes(term) ||
+                (customer.address?.toLowerCase() ?? '').includes(term) ||
+                (customer.state?.toLowerCase() ?? '').includes(term) ||
+                (customer.postal_code?.toLowerCase() ?? '').includes(term) ||
+                (customer.ServiceTypes?.toLowerCase() ?? '').includes(term)
             );
         });
     })
@@ -150,8 +141,12 @@ function Customer({ isDarkMode }) {
                 </div>
 
                 <div className="d-flex justify-content-between">
+                    {userRole !== 'user' && (
+                        <>
                     <Link to="/add" className='button-28 mb-3 mt-3'>Add Customer</Link>
                     <Link to="/CSVUploadComponent" className='button-29 mb-3 mt-3'>Upload CSV</Link>
+                    </>
+                    )}
                     <button className='button-29 mb-3 mt-3' onClick={exportCSV}>
                         Export CSV
                     </button>
@@ -174,7 +169,12 @@ function Customer({ isDarkMode }) {
                             <th onClick={() => handleClick('address')}>Address</th>
                             <th onClick={() => handleClick('state')}>State</th>
                             <th onClick={() => handleClick('postal_code')}>Postal Code</th>
+                            <th>Services</th>
+                            {userRole !== 'user' && (
+                            <>
                             <th className="Actions">Actions</th>
+                            </>
+                            )}
                         </tr>
                     </thead>
                     <tbody>
@@ -190,17 +190,24 @@ function Customer({ isDarkMode }) {
                                 <td>{customer.address}</td>
                                 <td>{customer.state}</td>
                                 <td>{customer.postal_code}</td>
+                                <td>{customer.ServiceTypes}</td>
+                                {userRole !== 'user' && (
+                                    <>
                                 <td >
 
                                     <Link to={`/editCustomer/` + customer.ID} className='button-44 mb-1'>
                                         Update
                                     </Link>
-
-                                    <button onClick={e => handleDelete(customer.ID)} className='button-45'>
+                                    {userRole === 'admin' && (
+                                        <>
+                                        <button onClick={e => handleDelete(customer.ID)} className='button-45'>
                                         Delete
-                                    </button>
-
+                                        </button>
+                                        </>
+                                    )}
                                 </td>
+                                </>
+                                )}
                             </tr>
                         })}
                     </tbody>
