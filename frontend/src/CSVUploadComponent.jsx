@@ -23,7 +23,6 @@ const CSVUploadComponent = () => {
 
         try {
             setUploadStatus('Uploading...');
-            // Making a POST request using axios
             await axios.post('http://localhost:8081/upload-csv', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
