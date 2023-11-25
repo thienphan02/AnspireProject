@@ -29,6 +29,7 @@ function Home({isDarkMode}) {
                 console.log(res.data);
                 setCustomerCount(res.data.users);
             } else {
+                setCustomerCount(0); // Likely error caused by no customers
                 console.error("Invalid data received from customerCount API");
             }
         })

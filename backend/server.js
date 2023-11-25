@@ -3,6 +3,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { upload, processCSVUpload } from './processCSVUpload.js'
 
 const app = express();
 app.use(cors({
@@ -140,7 +141,7 @@ app.put('/update/:id', async (req, res) => {
         await con.request()
             .input('id', sql.NVarChar(50), ID)
             .input('name', sql.NVarChar(30), updatedData.name)
-            .input('email', sql.NVarChar(30), updatedData.email)
+            .input('email', sql.NVarChar(100), updatedData.email)
             .input('device_payment_plan', sql.NVarChar(30), updatedData.device_payment_plan)
             .input('credit_card', sql.NVarChar(30), updatedData.credit_card)
             .input('credit_card_type', sql.NVarChar(30), updatedData.credit_card_type)
@@ -528,6 +529,16 @@ app.post('/filteredSearch', async (req, res) => {
         res.status(500).json({ Status: 'Error', Error: 'Error Sorting' });
     }
 })
+
+app.post('/upload-csv', upload.array('files'), (req, res) => {
+    try {
+        console.log('CSV upload request received:', req.files);
+        processCSVUpload(req, res, con);
+    } catch (error) {
+        console.error('Error during CSV upload:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 
 app.listen(8081, () => {
     console.log("Running")
