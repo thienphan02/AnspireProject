@@ -169,7 +169,7 @@ function Customer({ isDarkMode }) {
                             <th onClick={() => handleClick('address')}>Address</th>
                             <th onClick={() => handleClick('state')}>State</th>
                             <th onClick={() => handleClick('postal_code')}>Postal Code</th>
-                            <th>Services</th>
+                            <th onClick={() => handleClick('ServiceTypes')}>Services</th>
                             {userRole !== 'user' && (
                             <>
                             <th className="Actions">Actions</th>
