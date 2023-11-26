@@ -132,7 +132,6 @@ app.put('/update/:id', async (req, res) => {
 
 
     const services = req.body.Services
-    console.log(services)
 
     await con.query`DELETE FROM UserServices WHERE UserID = ${id}` // Delete all their services and just re-add them
     if(services.length > 0) {
@@ -493,11 +492,7 @@ app.post('/createUser', async (req, res) => {
     const password = req.body.password;
     try {
 
-        console.log("email", email);
-        console.log("password ", password);
-
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log("hashed password");
         const createUserQuery = "INSERT INTO users (email, role, password) VALUES (@email, 'user', @password)";
         const result = await con.request()
         .input('email', sql.VarChar(30), email)
@@ -513,6 +508,7 @@ app.post('/createUser', async (req, res) => {
 
 // COME BACK TO THIS WIP
 app.post('/filteredSearch', async (req, res) => {
+    let buildCondition = '';
     let {
         ID, 
         name,
@@ -527,6 +523,51 @@ app.post('/filteredSearch', async (req, res) => {
         ServiceTypes
     } = req.body;
     try {
+        ID = '%' + ID + '%'; // Create one for each parameter so that it searches for contains, not exact match.
+        name = '%' + name + '%';
+        email = '%' + email + '%';
+        device_payment_plan = '%' + device_payment_plan + '%';
+        credit_card = '%' + credit_card + '%';
+        credit_card_type = '%' + credit_card_type + '%';
+
+        // Handle the ServiceTypes. Can contains Wireless, Fiber, or both
+        let Wireless = 0; let Fiber = 0; let Both = 0
+        if(ServiceTypes.length > 0) { // If its empty
+            ServiceTypes.forEach((element) => {
+                if(element === 'Wireless') {
+                    Wireless = 1
+                }
+                if(element === 'Fiber') {
+                    Fiber = 1
+                }
+                if(element === 'Both') {
+                    Both = 1
+                }
+            })
+        }
+
+        // Conditionally build the Query around the Checkboxes
+        if(Both === 1 && Fiber === 0 && Wireless === 0) { // This is the only Both condition
+            buildCondition = `MAX(CASE WHEN ServiceType = 'Fiber' THEN 1 ELSE 0 END) = 1
+            AND MAX(CASE WHEN ServiceType = 'Wireless' THEN 1 ELSE 0 END) = 1`
+        } else if(Both === 1) { // Not only Both, still includes Both
+            buildCondition = `(@Fiber = 1 AND MAX(CASE WHEN ServiceType = 'Fiber' THEN 1 ELSE 0 END) = 1)
+            OR (@Wireless = 1 AND MAX(CASE WHEN ServiceType = 'Wireless' THEN 1 ELSE 0 END) = 1)`
+        } else { // Doesn't include Both
+            buildCondition = `(@Fiber = 1 AND MAX(CASE WHEN ServiceType = 'Fiber' THEN 1 ELSE 0 END) = 1 AND (1 = 1 AND MAX(CASE WHEN ServiceType = 'Wireless' THEN 1 ELSE 0 END) = 0))
+            OR ((@Wireless = 1 AND MAX(CASE WHEN ServiceType = 'Wireless' THEN 1 ELSE 0 END) = 1) AND MAX(CASE WHEN ServiceType = 'Fiber' THEN 1 ELSE 0 END) = 0)`
+        }
+
+        // Handle the date to make it a valid type
+        let account_last_payment_date_range = '0001-01-01'; 
+        if(account_last_payment_date) { // Checks if it is null or not (if null, set as lowest date)
+            account_last_payment_date_range = account_last_payment_date;
+        }
+
+        address = '%' + address + '%';
+        state = '%' + state + '%';
+        postal_code = '%' + address + '%';
+
         const query = `SELECT
         ID,
         name,
@@ -569,40 +610,8 @@ app.post('/filteredSearch', async (req, res) => {
         device_payment_plan,
         credit_card,
         credit_card_type
-        HAVING MAX(CASE WHEN ServiceType = 'Fiber' THEN 1 ELSE 0 END) = @Fiber
-	    AND MAX(CASE WHEN ServiceType = 'Wireless' THEN 1 ELSE 0 END) = @Wireless`;
+        HAVING ${buildCondition}`;
 
-        ID = '%' + ID + '%'; // Create one for each parameter so that it searches for contains, not exact match.
-        name = '%' + name + '%';
-        email = '%' + email + '%';
-        device_payment_plan = '%' + device_payment_plan + '%';
-        credit_card = '%' + credit_card + '%';
-        credit_card_type = '%' + credit_card_type + '%';
-
-        // Handle the ServiceTypes. Can contains Wireless, Fiber, or both
-        let Wireless = 0; let Fiber = 0;
-        if(ServiceTypes.length > 0) { // If its empty
-            ServiceTypes.forEach((element) => {
-                if(element === 'Wireless') {
-                    console.log("Wireless Checked")
-                    Wireless = 1
-                }
-                if(element === 'Fiber') {
-                    console.log("Fiber checked")
-                    Fiber = 1
-                }
-            })
-        }
-
-        // Handle the date to make it a valid type
-        let account_last_payment_date_range = '0001-01-01'; 
-        if(account_last_payment_date) { // Checks if it is null or not (if null, set as lowest date)
-            account_last_payment_date_range = account_last_payment_date;
-        }
-
-        address = '%' + address + '%';
-        state = '%' + state + '%';
-        postal_code = '%' + address + '%';
         const result = await con.request()
         .input('ID', sql.NVarChar(50), ID)
         .input('name', sql.NVarChar, name)

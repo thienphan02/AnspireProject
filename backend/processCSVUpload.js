@@ -50,6 +50,10 @@ const mergeAndInsertData = async (data, type, con) => {
     switch(type) {
         case 1:
             for(const record of data) { // Loop through every line in the file of type 1
+                if(record.Id === '') {
+                    console.log("record undefined")
+                    continue;
+                }
                 const ifExistsQuery = `SELECT * FROM combined_data WHERE ID = @ID`
                 try {
                     const request = await con.request()
@@ -77,7 +81,12 @@ const mergeAndInsertData = async (data, type, con) => {
             }
             break;
         case 2:
-            for(const record of data) { // This one is most complicated, return to later
+            for(const record of data) {
+                if(record.Id === '') {
+                    console.log("record undefined")
+                    continue;
+                }
+                const creditCardNumber = record['Credit Card Number'];
                 const ifExistsQuery = `SELECT * FROM combined_data WHERE ID = @ID`
                 const request = await con.request()
                 .input('ID', record.Id)
@@ -88,7 +97,7 @@ const mergeAndInsertData = async (data, type, con) => {
 
                     await con.request()
                     .input('ID', record.Id)
-                    .input('credit_card', record['Credit Card Number'])
+                    .input('credit_card', creditCardNumber)
                     .input('credit_card_type', record['Credit Card Type'])
                     .input('device_payment_plan', record['Device Payment Plan'])
                     .query(updateQuery);
@@ -109,13 +118,13 @@ const mergeAndInsertData = async (data, type, con) => {
                         .input('ServiceID', serviceID)
                         .query(insertServiceQuery);
                     }
-                } else { // Update instead of insert
+                } else { // Insert instead of update
                     const insertQuery = `Insert Into UserServices (ID, device_payment_plan, credit_card, credit_card_type) 
                     values (@ID, @device_payment_plan, @credit_card, @credit_card_type)`
 
                     await con.request()
                     .input('ID', record.Id)
-                    .input('credit_card', record['Credit Card Number'])
+                    .input('credit_card', creditCardNumber)
                     .input('credit_card_type', record['Credit Card Type'])
                     .input('device_payment_plan', record['Device Payment Plan'])
                     .query(insertQuery);
@@ -142,6 +151,10 @@ const mergeAndInsertData = async (data, type, con) => {
             break;
         case 3:
             for(const record of data) {
+                if(record.Id === '') {
+                    console.log("record undefined")
+                    continue;
+                }
                 const ifExistsQuery = `SELECT * from combined_data WHERE name = @Name`
                 const request = await con.request()
                 .input('Name', sql.NVarChar(30), record.Name)
@@ -177,7 +190,11 @@ const processCSVUpload = async (req, res, con) => {
             const filePath = file.path;
             const parsedData = await parseCSV(filePath);
             console.log("type: ", parsedData.typeIdentifier)
+            console.log("info: ", parsedData.data)
+            console.log("length: ", parsedData.data.length)
             await mergeAndInsertData(parsedData.data, parsedData.typeIdentifier, con);
+
+            fs.unlinkSync(filePath)
         }
         res.send('Files processed and data inserted into the database.');
     } catch (error) {

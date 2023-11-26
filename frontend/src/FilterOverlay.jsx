@@ -12,7 +12,7 @@ const FilterOverlay = ({ onClose, onFilterSubmit }) => {
         address: '',
         state: '',
         postal_code: '',
-        ServiceTypes: '',
+        ServiceTypes: ['Both', 'Wireless', 'Fiber'],
       });
 
       const handleInputChange = (e) => {
@@ -85,7 +85,7 @@ const FilterOverlay = ({ onClose, onFilterSubmit }) => {
     checked={inputValues.device_payment_plan === ''}
     onChange={handleInputChange}
   />
-  None
+  Either
 </label>
 
         <label>Credit Card: <input type="text" value={inputValues.credit_card} name="credit_card" onChange={handleInputChange} /></label>
@@ -120,7 +120,7 @@ const FilterOverlay = ({ onClose, onFilterSubmit }) => {
     <label>
       Both
       <input
-        type="radio"
+        type="checkbox"
         name="ServiceTypes"
         value="Both"
         checked={inputValues.ServiceTypes.includes('Both')}
