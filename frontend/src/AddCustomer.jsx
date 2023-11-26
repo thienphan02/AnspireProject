@@ -67,11 +67,33 @@ function AddCustomer() {
 					<input type="email" className ="form-control" id="inputEmail" placeholder='Enter Email' autoComplete='off'
 					onChange={e => setData({...data, email: e.target.value})}/>
 				</div>
-				<div className ="col-12">
-					<label htmlFor="inputDevicePaymentPlan" className ="form-label">Device Payment Plan</label>
-					<input type="text" className ="form-control" id="inputDevicePaymentPlan" placeholder="Enter Device Payment Plan" autoComplete='off'
-					onChange={e => setData({...data, device_payment_plan: e.target.value})}/>
-				</div>
+				<div className="col-12">
+                <label htmlFor="inputDevicePaymentPlan" className="form-label">Device Payment Plan</label>
+                <div>
+                    <label>
+                        TRUE
+                        <input
+                            type="radio"
+                            name="devicePaymentPlan"
+                            value="TRUE"
+                            checked={data.device_payment_plan === 'TRUE'}
+                            onChange={e => setData({...data, device_payment_plan: e.target.value})}
+                        />
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        FALSE
+                        <input
+                            type="radio"
+                            name="devicePaymentPlan"
+                            value="FALSE"
+                            checked={data.device_payment_plan === 'FALSE'}
+                            onChange={e => setData({...data, device_payment_plan: e.target.value})}
+                        />
+                    </label>
+                </div>
+            </div>
                 <div className ="col-12">
 					<label htmlFor="inputCreditCardNumber" className ="form-label">Credit Card Number</label>
 					<input type="text" className ="form-control" id="inputCreditCardNumber" placeholder="Enter Credit Card Number" autoComplete='off'
