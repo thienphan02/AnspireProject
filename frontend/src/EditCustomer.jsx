@@ -7,7 +7,6 @@ function EditCustomer() {
 	const navigate = useNavigate()
 
     const [data, setData] = useState({
-        ID: '',
 		name: '',
 		email: '',
         device_payment_plan: '',
@@ -16,13 +15,18 @@ function EditCustomer() {
         account_last_payment_date: '',
 		address: '',
 		state: '',
-		postal_code: ''
+		postal_code: '',
+		Services: []
 	})   
 
 	useEffect(() => {
 		axios.get('http://localhost:8081/get/' + id)
 		  .then(res => {
 			const [customerData] = res.data.Result;
+			let Services = [];
+			res.data.Services.forEach((element) => {
+				Services.push(element.ServiceType)
+			})
 			console.log('API Response:', res.data);
 			if (customerData) {
 			  const {
@@ -36,7 +40,7 @@ function EditCustomer() {
 				state,
 				postal_code
 			  } = customerData;
-			  
+
 			  setData({
 				...data,
 				name,
@@ -47,7 +51,8 @@ function EditCustomer() {
 				account_last_payment_date,
 				address,
 				state,
-				postal_code
+				postal_code,
+				Services
 			  });
 			} else {
 			  console.log(data)
@@ -58,6 +63,15 @@ function EditCustomer() {
 		  });
 	  }, []);
 	
+	  const handleInputChange = (e) => {
+		const { value, checked } = e.target;
+		setData((prevData) => ({
+		  ...prevData,
+		  Services: checked
+			? [...prevData.Services, value]
+			: prevData.Services.filter((type) => type !== value)
+		}));
+	  };  
 
     const handleSubmit = (event) => {
 		event.preventDefault();
@@ -118,6 +132,33 @@ function EditCustomer() {
 					<label htmlFor="inputPostalCode" className ="form-label">Postal Code</label>
 					<input type="text" className ="form-control" id="inputPostalCode" placeholder="Enter Postal Code" autoComplete='off'
 					onChange={e => setData({...data, postal_code: e.target.value})} value={data.postal_code}/>
+				</div>
+				<div className ="col-12">
+					<label htmlFor="inputServices" className = "form-label">Services</label>
+					<div>
+					<label>
+					Wireless
+					<input
+						type="checkbox"
+						name="Services"
+						value="Wireless"
+						checked={data.Services.includes('Wireless')}
+						onChange={handleInputChange}
+					/>
+					</label>
+					</div>
+					<div>
+					<label>
+					Fiber
+					<input
+						type="checkbox"
+						name="Services"
+						value="Fiber"
+						checked={data.Services.includes('Fiber')}
+						onChange={handleInputChange}
+					/>
+					</label>
+				</div>
 				</div>
 				<div className ="col-12">
 					<button type="submit" className ="btn btn-primary">Update</button>
